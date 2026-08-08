@@ -1,0 +1,378 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CES — ติดตามหนี้แบบกำหนดเอง</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Thai:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --purple:#6B4E9E;--purple-600:#7C5FB8;--purple-100:#EFEAF7;--purple-50:#F7F4FC;
+    --orange:#E8823C;--orange-100:#FCF0E6;--red:#E05656;--red-100:#FBEAEA;
+    --green:#3EA97A;--green-100:#E7F5EF;--ink:#2B2540;--muted:#8A8398;
+    --line:#EBE8F0;--bg:#F4F2F8;--card:#FFFFFF;--radius:16px;--radius-sm:10px;
+    --shadow:0 1px 3px rgba(43,37,64,.05),0 10px 30px rgba(43,37,64,.05);
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:'IBM Plex Sans Thai',sans-serif;background:var(--bg);color:var(--ink);-webkit-font-smoothing:antialiased;font-size:14px;line-height:1.5}
+  .topbar{background:var(--card);border-bottom:1px solid var(--line);padding:11px 22px;display:flex;align-items:center;gap:14px;position:sticky;top:0;z-index:50}
+  .burger{width:20px;display:flex;flex-direction:column;gap:4px;cursor:pointer}
+  .burger span{height:2px;background:var(--ink);border-radius:2px}
+  .brand{display:flex;align-items:center;gap:8px;font-weight:700;color:var(--purple)}
+  .brand .logo{background:var(--purple);color:#fff;font-weight:700;font-size:12px;padding:4px 8px;border-radius:8px;letter-spacing:.5px}
+  .crumb{color:var(--purple);font-weight:600;display:flex;align-items:center;gap:8px}
+  .crumb .step-type{color:var(--ink);background:var(--purple-100);padding:2px 10px;border-radius:999px;font-size:12px}
+  .spacer{flex:1}
+  .lang{display:flex;gap:2px}
+  .lang button{border:none;background:transparent;color:var(--muted);font-family:inherit;padding:4px 8px;border-radius:6px;cursor:pointer;font-weight:600;font-size:12px}
+  .lang button.on{background:var(--purple);color:#fff}
+  .avatar{width:30px;height:30px;border-radius:50%;background:linear-gradient(135deg,var(--purple),var(--orange))}
+  .backline{padding:8px 22px 0;color:var(--purple);font-size:13px;font-weight:500;display:flex;align-items:center;gap:6px;cursor:pointer}
+  .wrap{max-width:1220px;margin:0 auto;padding:18px 22px 50px}
+  .btn{font-family:inherit;font-weight:600;font-size:13px;border-radius:999px;padding:10px 18px;cursor:pointer;border:1px solid transparent;transition:.15s}
+  .btn-primary{background:var(--purple);color:#fff}
+  .btn-primary:hover{background:var(--purple-600)}
+  .btn-ghost{background:transparent;color:var(--purple);border:1px solid var(--line)}
+  .btn-ghost:hover{background:var(--purple-100)}
+  .step1-head h1{font-size:22px;font-weight:700}
+  .step1-head p{color:var(--muted);margin-top:4px;max-width:560px}
+  .type-note{font-size:12px;color:var(--muted);background:var(--purple-50);border:1px solid var(--line);border-radius:10px;padding:9px 13px;margin:14px 0 20px;display:flex;align-items:center;gap:8px}
+  .type-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:14px}
+  .type-card{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);box-shadow:var(--shadow);padding:18px;cursor:pointer;transition:.15s;text-align:left;position:relative;overflow:hidden}
+  .type-card:hover{border-color:var(--purple-600);transform:translateY(-2px)}
+  .type-card .ic{width:44px;height:44px;border-radius:12px;display:flex;align-items:center;justify-content:center;color:#fff;font-size:18px;font-weight:700;margin-bottom:12px}
+  .type-card h3{font-size:15px;font-weight:700;margin-bottom:4px}
+  .type-card .stats{font-size:12px;color:var(--muted)}
+  .type-card .stats b{color:var(--ink);font-weight:700}
+  .type-card .arrow{position:absolute;top:18px;right:18px;color:var(--muted);transition:.15s}
+  .type-card:hover .arrow{color:var(--purple);transform:translateX(3px)}
+  .type-card .badges{display:flex;gap:6px;flex-wrap:wrap;margin-top:8px}
+  .type-card .over-badge{font-size:11px;font-weight:600;color:var(--red);background:var(--red-100);padding:2px 9px;border-radius:999px}
+  .type-card .brk-badge{font-size:11px;font-weight:600;color:#B5451B;background:#FBE3D5;padding:2px 9px;border-radius:999px}
+  .grid{display:grid;grid-template-columns:1.25fr 1fr;gap:20px;align-items:start}
+  .panel{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);box-shadow:var(--shadow);padding:20px}
+  .type-banner{display:flex;align-items:center;gap:12px;background:var(--card);border:1px solid var(--line);border-radius:var(--radius);box-shadow:var(--shadow);padding:14px 18px;margin-bottom:16px}
+  .type-banner .ic{width:40px;height:40px;border-radius:11px;display:flex;align-items:center;justify-content:center;color:#fff;font-size:16px;font-weight:700;flex-shrink:0}
+  .type-banner .tt{flex:1}
+  .type-banner .tt h2{font-size:16px;font-weight:700}
+  .type-banner .tt .st{font-size:12px;color:var(--muted)}
+  .type-banner .change{font-size:13px;color:var(--purple);font-weight:600;cursor:pointer;display:flex;align-items:center;gap:5px}
+  .panel-head{display:flex;align-items:baseline;justify-content:space-between;margin-bottom:6px}
+  .panel-head h2{font-size:16px;font-weight:700}
+  .panel-head h2 em{color:var(--purple);font-style:normal}
+  .panel-head .req{color:var(--red);font-size:12px;font-weight:600}
+  .sub{color:var(--muted);font-size:12.5px;margin-bottom:16px}
+  .filters{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px}
+  .fchip{font-family:inherit;font-size:12px;font-weight:600;color:var(--muted);background:var(--card);border:1px solid var(--line);border-radius:999px;padding:7px 13px;cursor:pointer;transition:.12s;display:flex;align-items:center;gap:6px}
+  .fchip:hover{border-color:var(--purple-600);color:var(--purple)}
+  .fchip.on{background:var(--purple);color:#fff;border-color:var(--purple)}
+  .fchip.brk.on{background:#B5451B;border-color:#B5451B}
+  .fchip .fdot{width:7px;height:7px;border-radius:50%}
+  .searchbar{display:flex;align-items:center;gap:8px;background:var(--purple-50);border:1px solid var(--line);border-radius:999px;padding:8px 14px;margin-bottom:12px}
+  .searchbar input{border:none;background:transparent;font-family:inherit;font-size:13px;width:100%;outline:none;color:var(--ink)}
+  .searchbar .mag{color:var(--muted)}
+  .selall{display:flex;align-items:center;justify-content:space-between;padding:8px 10px;border-bottom:1px solid var(--line);font-size:12px}
+  .selall .l{display:flex;align-items:center;gap:9px;font-weight:600;color:var(--muted);cursor:pointer}
+  .selall .cnt{color:var(--purple);font-weight:700}
+  .cb{width:18px;height:18px;border-radius:5px;border:1.5px solid #C9C3D6;background:var(--card);cursor:pointer;flex-shrink:0;display:flex;align-items:center;justify-content:center;transition:.12s}
+  .cb.on{background:var(--purple);border-color:var(--purple)}
+  .cb.on::after{content:"\2713";color:#fff;font-size:12px;font-weight:700}
+  .rows{max-height:520px;overflow-y:auto}
+  .rows::-webkit-scrollbar{width:6px}.rows::-webkit-scrollbar-thumb{background:var(--line);border-radius:6px}
+  .row{display:grid;grid-template-columns:20px 1fr auto;gap:12px;align-items:center;padding:12px 10px;border-bottom:1px solid var(--line);cursor:pointer;transition:.12s;border-left:3px solid transparent}
+  .row:hover{background:var(--purple-50)}
+  .row.sel{background:var(--purple-100);border-left-color:var(--purple)}
+  .row.broken{border-left-color:#B5451B}
+  .row .who{min-width:0}
+  .row .who .t{font-weight:600;font-size:13.5px;display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+  .row .who .code{font-size:11px;color:var(--muted);font-weight:500}
+  .row .who .meta{font-size:12px;color:var(--muted);margin-top:3px}
+  .brk-tag{font-size:11px;font-weight:600;color:#fff;background:#B5451B;padding:1px 8px;border-radius:999px}
+  .row .amt{text-align:right;white-space:nowrap}
+  .row .amt .money{font-weight:700;font-size:14px;color:var(--ink)}
+  .row .amt .age{font-size:11px;font-weight:600;margin-top:2px;display:inline-block;padding:1px 8px;border-radius:999px}
+  .age-1{background:var(--purple-100);color:var(--purple)}
+  .age-2{background:var(--orange-100);color:var(--orange)}
+  .age-3{background:var(--red-100);color:var(--red)}
+  .lastnote{font-size:11px;color:var(--muted);margin-top:4px;display:flex;align-items:center;gap:5px}
+  .lastnote .ld{width:6px;height:6px;border-radius:50%;background:var(--green)}
+  .lastnote.brk{color:#B5451B;font-weight:600}
+  .lastnote.brk .ld{background:#B5451B}
+  .compose-head{display:flex;align-items:center;gap:12px;margin-bottom:6px}
+  .compose-head .badge-n{min-width:46px;height:46px;border-radius:12px;background:var(--purple);color:#fff;display:flex;flex-direction:column;align-items:center;justify-content:center;flex-shrink:0}
+  .compose-head .badge-n b{font-size:19px;line-height:1}
+  .compose-head .badge-n small{font-size:9px;opacity:.85}
+  .compose-head .tt h3{font-size:16px;font-weight:700}
+  .compose-head .tt .st{font-size:12px;color:var(--muted)}
+  .contact-box{display:flex;gap:10px;margin:14px 0}
+  .contact{flex:1;background:var(--purple-50);border:1px solid var(--line);border-radius:var(--radius-sm);padding:10px 12px}
+  .contact .lb{font-size:11px;color:var(--muted);font-weight:600;margin-bottom:4px}
+  .contact .num{font-size:14px;font-weight:700;color:var(--ink);display:flex;align-items:center;gap:6px}
+  .contact a.call{margin-left:auto;background:var(--green);color:#fff;text-decoration:none;font-size:11px;font-weight:600;padding:4px 10px;border-radius:999px;display:inline-flex;align-items:center;gap:4px}
+  .contact a.call:hover{background:#348c66}
+  .promise-alert{background:#FBE3D5;border:1px solid #F0C4AC;border-radius:var(--radius-sm);padding:11px 13px;margin:14px 0;font-size:12.5px;color:#8A3413;line-height:1.6}
+  .promise-alert b{color:#B5451B}
+  .timeline{margin:6px 0 4px}
+  .tl-head{font-size:12px;font-weight:600;color:var(--muted);margin-bottom:8px;display:flex;align-items:center;justify-content:space-between}
+  .tl-head .cnt{color:#B5451B;font-weight:700}
+  .tl-item{display:flex;gap:10px;padding:0 0 10px;position:relative}
+  .tl-item:not(:last-child)::before{content:"";position:absolute;left:6px;top:16px;bottom:0;width:1.5px;background:var(--line)}
+  .tl-dot{width:13px;height:13px;border-radius:50%;flex-shrink:0;margin-top:2px;border:2px solid #fff;box-shadow:0 0 0 1px var(--line)}
+  .tl-dot.missed{background:#B5451B;box-shadow:0 0 0 1px #B5451B}
+  .tl-dot.upcoming{background:var(--green);box-shadow:0 0 0 1px var(--green)}
+  .tl-body{flex:1;font-size:12.5px}
+  .tl-body .d{font-weight:600}
+  .tl-body .d.missed{color:#B5451B}
+  .tl-body .d.upcoming{color:var(--green)}
+  .tl-body .via{color:var(--muted);font-size:11px;margin-top:1px}
+  .tl-body .stat-tag{font-size:10px;font-weight:600;padding:1px 7px;border-radius:999px;margin-left:6px}
+  .tl-body .stat-tag.missed{background:#FBE3D5;color:#B5451B}
+  .tl-body .stat-tag.upcoming{background:var(--green-100);color:var(--green)}
+  .recips{display:flex;flex-wrap:wrap;gap:6px;margin:14px 0}
+  .recip{font-size:12px;font-weight:500;background:var(--purple-50);border:1px solid var(--purple-100);border-radius:999px;padding:4px 8px 4px 11px;display:flex;align-items:center;gap:7px}
+  .recip .x{cursor:pointer;color:var(--muted);font-weight:700;width:16px;height:16px;border-radius:50%;display:flex;align-items:center;justify-content:center}
+  .recip .x:hover{background:var(--red-100);color:var(--red)}
+  .recip-more{font-size:12px;color:var(--purple);font-weight:600;align-self:center}
+  .field{margin-bottom:14px}
+  .field > label{font-size:12px;font-weight:600;color:var(--muted);display:block;margin-bottom:6px}
+  .field .req{color:var(--red)}
+  .promise-row{display:flex;gap:10px;align-items:center}
+  .promise-row input[type=date]{flex:1;border:1px solid var(--line);border-radius:var(--radius-sm);padding:9px 12px;font-family:inherit;font-size:13px;color:var(--ink);outline:none}
+  .promise-row input[type=date]:focus{border-color:var(--purple-600)}
+  .msg-note{font-size:11.5px;color:var(--muted);background:var(--purple-50);border-radius:8px;padding:7px 10px;margin-bottom:10px;line-height:1.5}
+  .msg-tabs{display:flex;gap:6px;margin-bottom:10px;border-bottom:1px solid var(--line);flex-wrap:wrap}
+  .msg-tab{font-family:inherit;font-size:12.5px;font-weight:600;color:var(--muted);background:transparent;border:none;padding:8px 12px;cursor:pointer;border-bottom:2px solid transparent;margin-bottom:-1px;display:flex;align-items:center;gap:7px;transition:.12s}
+  .msg-tab:hover{color:var(--ink)}
+  .msg-tab.on{color:var(--purple);border-bottom-color:var(--purple)}
+  .msg-tab .tdot2{width:8px;height:8px;border-radius:2px}
+  .msg-tab .chk{width:15px;height:15px;border-radius:4px;border:1.5px solid #C9C3D6;display:flex;align-items:center;justify-content:center;font-size:10px}
+  .msg-tab.active-ch .chk{background:var(--green);border-color:var(--green);color:#fff}
+  .var-bar{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:8px}
+  .var-chip{font-size:11.5px;font-weight:600;color:var(--purple);background:var(--purple-50);border:1px solid var(--purple-100);border-radius:999px;padding:4px 10px;cursor:pointer;transition:.12s;font-family:inherit}
+  .var-chip:hover{background:var(--purple);color:#fff;border-color:var(--purple)}
+  .var-chip::before{content:"+ ";opacity:.6}
+  .msg-input{width:100%;min-height:110px;resize:vertical;font-family:inherit;font-size:13px;line-height:1.7;color:var(--ink);background:var(--card);border:1px solid var(--line);border-radius:var(--radius-sm);padding:11px 13px;outline:none;transition:.12s}
+  .msg-input:focus{border-color:var(--purple-600);box-shadow:0 0 0 3px var(--purple-100)}
+  .msg-count{font-size:11px;color:var(--muted);margin-top:5px;display:flex;justify-content:space-between}
+  .msg-count b{color:var(--purple);font-weight:600}
+  .preview{background:var(--purple-50);border:1px dashed var(--purple-600);border-radius:var(--radius-sm);padding:11px 13px;font-size:13px;line-height:1.8;margin-top:10px;white-space:pre-wrap}
+  .preview .tag{font-size:11px;color:var(--muted);font-weight:600;margin-bottom:6px;display:block}
+  .preview .filled{color:var(--purple);font-weight:600}
+  .send-foot{display:flex;gap:10px;justify-content:space-between;align-items:center;margin-top:20px;padding-top:16px;border-top:1px solid var(--line)}
+  .send-foot .note{font-size:12px;color:var(--muted)}
+  .empty{display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;color:var(--muted);padding:70px 20px}
+  .empty .big{width:56px;height:56px;border-radius:16px;background:var(--purple-50);display:flex;align-items:center;justify-content:center;font-size:24px;margin-bottom:14px}
+  .empty h3{color:var(--ink);font-size:15px;margin-bottom:4px}
+  .toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(80px);background:var(--ink);color:#fff;padding:12px 20px;border-radius:999px;font-size:13px;font-weight:500;box-shadow:0 8px 24px rgba(0,0,0,.25);opacity:0;transition:.3s;z-index:100;display:flex;align-items:center;gap:9px}
+  .toast.show{transform:translateX(-50%) translateY(0);opacity:1}
+  .toast .tdot{width:8px;height:8px;border-radius:50%;background:var(--green)}
+  .hide{display:none!important}
+  @media(max-width:900px){.grid{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<div class="topbar">
+  <div class="burger"><span></span><span></span><span></span></div>
+  <div class="brand"><span class="logo">CES</span></div>
+  <div class="crumb">ติดตามหนี้แบบกำหนดเอง <span class="step-type hide" id="crumb-type"></span></div>
+  <div class="spacer"></div>
+  <div class="lang"><button class="on">TH</button><button>EN</button></div>
+  <div class="avatar"></div>
+</div>
+<div class="backline" onclick="goStep1()">&larr; ย้อนกลับหน้าเลือกระบบติดตามหนี้</div>
+<div class="wrap">
+  <div id="step1">
+    <div class="step1-head"><h1>เลือกประเภทหนี้ที่จะติดตาม</h1><p>เลือกประเภทหนี้ที่คุณรับผิดชอบ ระบบจะแสดงเฉพาะนักศึกษาที่ค้างชำระในประเภทนั้น</p></div>
+    <div class="type-note">ประเภทหนี้ดึงมาจากระบบตั้งค่าส่วนกลาง — หากต้องการเพิ่มประเภทใหม่ ให้ไปที่เมนูตั้งค่าประเภทค่าใช้จ่าย</div>
+    <div class="type-grid" id="type-grid"></div>
+  </div>
+  <div id="step2" class="hide">
+    <div class="type-banner">
+      <div class="ic" id="banner-ic"></div>
+      <div class="tt"><h2 id="banner-name"></h2><div class="st" id="banner-st"></div></div>
+      <div class="change" onclick="goStep1()">&#8635; เปลี่ยนประเภท</div>
+    </div>
+    <div class="grid">
+      <div class="panel">
+        <div class="panel-head"><h2>นักศึกษาที่ <em>ค้างชำระ</em></h2><span class="req" id="total-label">0 ราย</span></div>
+        <div class="sub">เลือกนักศึกษาที่ต้องการทวง (เลือกได้หลายคน) แล้วเขียนข้อความทางด้านขวา</div>
+        <div class="filters" id="filters">
+          <button class="fchip on" data-f="all" onclick="setFilter('all',this)">ทั้งหมด</button>
+          <button class="fchip brk" data-f="broken" onclick="setFilter('broken',this)"><span class="fdot" style="background:#B5451B"></span>ผิดนัดชำระ</button>
+          <button class="fchip" data-f="a1" onclick="setFilter('a1',this)"><span class="fdot" style="background:var(--purple)"></span>1–15 วัน</button>
+          <button class="fchip" data-f="a2" onclick="setFilter('a2',this)"><span class="fdot" style="background:var(--orange)"></span>16–30 วัน</button>
+          <button class="fchip" data-f="a3" onclick="setFilter('a3',this)"><span class="fdot" style="background:var(--red)"></span>30+ วัน</button>
+          <button class="fchip" data-f="notyet" onclick="setFilter('notyet',this)">ยังไม่เคยทวง</button>
+        </div>
+        <div class="searchbar"><span class="mag">&#8981;</span><input placeholder="ค้นหาชื่อ / รหัสนักศึกษา" oninput="setSearch(this.value)"></div>
+        <div class="selall"><span class="l" onclick="toggleAll()"><span class="cb" id="cb-all"></span>เลือกทั้งหมดที่แสดง</span><span class="cnt" id="sel-count">เลือกแล้ว 0 ราย</span></div>
+        <div class="rows" id="rows"></div>
+      </div>
+      <div class="panel" id="compose"></div>
+    </div>
+  </div>
+</div>
+<div class="toast" id="toast"><span class="tdot"></span><span id="toast-msg"></span></div>
+<script>
+const TODAY=new Date('2026-08-08');
+const DEBT_TYPES=[
+  {code:'tuition',name:'ค่าเทอม',color:'#6B4E9E',icon:'\u0E3F'},
+  {code:'dorm',name:'ค่าหอพัก',color:'#3EA97A',icon:'\u2302'},
+  {code:'fine',name:'ค่าปรับ',color:'#E8823C',icon:'!'},
+  {code:'lab',name:'ค่าธรรมเนียมห้องแล็บ',color:'#7C5FB8',icon:'\u2697'},
+  {code:'activity',name:'ค่ากิจกรรม',color:'#E05656',icon:'\u2605'},
+  {code:'other',name:'ค่าใช้จ่ายอื่น ๆ',color:'#8A8398',icon:'\u2026'}
+];
+const STUDENTS=[
+  {id:1,type:'tuition',name:'นายสมชาย ใจดี',code:'65123456',faculty:'สารสนเทศศาสตร์',amount:23700,days:8,phone:'081-234-5678',parentPhone:'089-111-2222',lastNote:'ทวงผ่านแอปแล้ว 5 พ.ย.',promises:[]},
+  {id:2,type:'tuition',name:'นายวิชัย พงษ์ไทย',code:'64111222',faculty:'พยาบาลศาสตร์',amount:31200,days:41,phone:'082-345-6789',parentPhone:'089-222-3333',lastNote:'ทวงผ่านแอป + Line 1 พ.ย.',promises:[{date:'2026-06-15',via:'โทรศัพท์'},{date:'2026-07-10',via:'Line ผู้ปกครอง'},{date:'2026-07-30',via:'โทรศัพท์'}]},
+  {id:3,type:'tuition',name:'นายธนา รักเรียน',code:'63999001',faculty:'วิศวกรรมศาสตร์',amount:28900,days:22,phone:'083-456-7890',parentPhone:'089-333-4444',lastNote:null,promises:[]},
+  {id:4,type:'tuition',name:'นายอนุชา วงศ์ดี',code:'64300221',faculty:'การจัดการ',amount:22300,days:18,phone:'084-567-8901',parentPhone:'089-444-5555',lastNote:'นัดชำระ 15 ส.ค.',promises:[{date:'2026-08-15',via:'เจอตัวที่งานการเงิน'}]},
+  {id:5,type:'tuition',name:'นางสาวรัตนา ทองคำ',code:'63455789',faculty:'พยาบาลศาสตร์',amount:31200,days:55,phone:'085-678-9012',parentPhone:'089-555-6666',lastNote:'ส่งเข้าคิวจากระบบอัตโนมัติ',promises:[{date:'2026-07-20',via:'โทรศัพท์'}]},
+  {id:6,type:'dorm',name:'นางสาวมาลี ศรีสุข',code:'65123457',faculty:'สารสนเทศศาสตร์',amount:8500,days:3,phone:'086-789-0123',parentPhone:'089-666-7777',lastNote:null,promises:[]},
+  {id:7,type:'dorm',name:'นางสาวปรียา สุขใจ',code:'65200110',faculty:'สารสนเทศศาสตร์',amount:8500,days:14,phone:'087-890-1234',parentPhone:'089-777-8888',lastNote:'นัดชำระ 1 ส.ค.',promises:[{date:'2026-07-05',via:'Line ผู้ปกครอง'},{date:'2026-08-01',via:'โทรศัพท์'}]},
+  {id:8,type:'dorm',name:'นายวิชัย พงษ์ไทย',code:'64111222',faculty:'พยาบาลศาสตร์',amount:8500,days:14,phone:'082-345-6789',parentPhone:'089-222-3333',lastNote:null,promises:[]},
+  {id:9,type:'fine',name:'นางสาวกานดา แก้วมณี',code:'64111888',faculty:'สหเวชศาสตร์',amount:450,days:12,phone:'088-901-2345',parentPhone:'089-888-9999',lastNote:null,promises:[]},
+  {id:10,type:'fine',name:'นายวิชัย พงษ์ไทย',code:'64111222',faculty:'พยาบาลศาสตร์',amount:450,days:3,phone:'082-345-6789',parentPhone:'089-222-3333',lastNote:null,promises:[]},
+  {id:11,type:'lab',name:'นายกิตติ เรืองรอง',code:'65400333',faculty:'วิทยาศาสตร์',amount:1200,days:9,phone:'089-012-3456',parentPhone:'089-999-0000',lastNote:null,promises:[]},
+  {id:12,type:'activity',name:'นางสาวศิริพร มั่นคง',code:'65500444',faculty:'การจัดการ',amount:600,days:20,phone:'081-111-2222',parentPhone:'089-000-1111',lastNote:'นัดชำระ 25 ก.ค.',promises:[{date:'2026-07-25',via:'โทรศัพท์'}]}
+];
+let currentType=null,selected=new Set(),filter='all',search='',activeCh='app';
+let msgs={app:'',line:'',adv:''},chOn={app:true,line:false,adv:false};
+const SAMPLE={'{ชื่อนักศึกษา}':'นายสมชาย ใจดี','{รหัสนักศึกษา}':'65123456','{ประเภทหนี้}':'ค่าเทอม','{จำนวนเงิน}':'23,700','{วันครบกำหนด}':'15 พ.ย. 2569','{จำนวนวันเกิน}':'8'};
+const CH_META={app:{label:'แอปนักศึกษา',color:'#6B4E9E'},line:{label:'ผู้ปกครอง (Line OA)',color:'#3EA97A'},adv:{label:'อาจารย์ที่ปรึกษา',color:'#E8823C'}};
+function typeObj(c){return DEBT_TYPES.find(t=>t.code===c);}
+function studentsOf(c){return STUDENTS.filter(s=>s.type===c);}
+function lastPromise(s){return s.promises&&s.promises.length?s.promises[s.promises.length-1]:null;}
+function isBroken(s){const lp=lastPromise(s);return lp&&new Date(lp.date)<TODAY;}
+function daysSince(iso){return Math.round((TODAY-new Date(iso))/86400000);}
+function ageClass(d){return d>30?'age-3':d>15?'age-2':'age-1';}
+function fmt(n){return n.toLocaleString('th-TH');}
+function thDate(iso){if(!iso)return'';const d=new Date(iso);const m=['ม.ค.','ก.พ.','มี.ค.','เม.ย.','พ.ค.','มิ.ย.','ก.ค.','ส.ค.','ก.ย.','ต.ค.','พ.ย.','ธ.ค.'];return d.getDate()+' '+m[d.getMonth()]+' '+(d.getFullYear()+543-2500);}
+function renderStep1(){
+  document.getElementById('type-grid').innerHTML=DEBT_TYPES.map(t=>{
+    const list=studentsOf(t.code),total=list.reduce((a,s)=>a+s.amount,0),over=list.filter(s=>s.days>30).length,brk=list.filter(isBroken).length;
+    let badges='';
+    if(over>0)badges+='<span class="over-badge">'+over+' ราย เกิน 30 วัน</span>';
+    if(brk>0)badges+='<span class="brk-badge">'+brk+' ราย ผิดนัด</span>';
+    return '<button class="type-card" onclick="chooseType(\''+t.code+'\')"><span class="arrow">&rarr;</span><div class="ic" style="background:'+t.color+'">'+t.icon+'</div><h3>'+t.name+'</h3><div class="stats"><b>'+list.length+'</b> ราย ค้างชำระ · รวม <b>'+fmt(total)+'</b> ฿</div>'+(badges?'<div class="badges">'+badges+'</div>':'')+'</button>';
+  }).join('');
+}
+function chooseType(code){
+  currentType=code;selected.clear();filter='all';search='';
+  const t=typeObj(code);
+  msgs={
+    app:'เรียน {ชื่อนักศึกษา}\nท่านมียอดค้างชำระ'+t.name+' จำนวน {จำนวนเงิน} บาท เกินกำหนด {จำนวนวันเกิน} วัน กรุณาติดต่อชำระที่งานการเงินโดยด่วน',
+    line:'เรียนผู้ปกครองของ {ชื่อนักศึกษา} รหัส {รหัสนักศึกษา}\nนักศึกษามียอดค้างชำระ'+t.name+' {จำนวนเงิน} บาท ขอความอนุเคราะห์ท่านช่วยติดตามการชำระ',
+    adv:'เรียนอาจารย์ที่ปรึกษาของ {ชื่อนักศึกษา} รหัส {รหัสนักศึกษา}\nนักศึกษามียอดค้างชำระ'+t.name+' {จำนวนเงิน} บาท ขอความอนุเคราะห์อาจารย์ช่วยติดตามด้วยค่ะ'
+  };
+  chOn={app:true,line:false,adv:false};activeCh='app';
+  document.getElementById('step1').classList.add('hide');
+  document.getElementById('step2').classList.remove('hide');
+  document.getElementById('crumb-type').classList.remove('hide');
+  document.getElementById('crumb-type').textContent=t.name;
+  document.getElementById('banner-ic').style.background=t.color;
+  document.getElementById('banner-ic').textContent=t.icon;
+  document.getElementById('banner-name').textContent='กำลังติดตาม: '+t.name;
+  const list=studentsOf(code),brk=list.filter(isBroken).length;
+  document.getElementById('banner-st').textContent=list.length+' รายค้างชำระ · รวม '+fmt(list.reduce((a,s)=>a+s.amount,0))+' บาท'+(brk>0?' · ผิดนัด '+brk+' ราย':'');
+  document.querySelectorAll('.fchip').forEach((x,i)=>x.classList.toggle('on',i===0));
+  renderRows();renderCompose();
+}
+function goStep1(){document.getElementById('step2').classList.add('hide');document.getElementById('step1').classList.remove('hide');document.getElementById('crumb-type').classList.add('hide');currentType=null;renderStep1();}
+function passFilter(s){
+  if(search){const q=search.toLowerCase();if(!s.name.toLowerCase().includes(q)&&!s.code.includes(q))return false;}
+  if(filter==='all')return true;
+  if(filter==='broken')return isBroken(s);
+  if(filter==='a1')return s.days>=1&&s.days<=15;
+  if(filter==='a2')return s.days>=16&&s.days<=30;
+  if(filter==='a3')return s.days>30;
+  if(filter==='notyet')return !s.lastNote;
+  return true;
+}
+function visible(){return studentsOf(currentType).filter(passFilter);}
+function renderRows(){
+  const el=document.getElementById('rows'),vis=visible();
+  el.innerHTML=vis.map(s=>{
+    const brk=isBroken(s);
+    const lp=lastPromise(s);
+    const noteHtml=brk?'<div class="lastnote brk"><span class="ld"></span>ผิดนัด '+s.promises.length+' ครั้ง · นัดล่าสุด '+thDate(lp.date)+'</div>':(s.lastNote?'<div class="lastnote"><span class="ld"></span>'+s.lastNote+'</div>':'<div class="lastnote" style="color:var(--red)">&bull; ยังไม่เคยทวง</div>');
+    return '<div class="row '+(selected.has(s.id)?'sel':'')+' '+(brk?'broken':'')+'" onclick="toggleOne('+s.id+')"><span class="cb '+(selected.has(s.id)?'on':'')+'"></span><div class="who"><div class="t">'+s.name+' <span class="code">'+s.code+'</span>'+(brk?'<span class="brk-tag">ผิดนัด</span>':'')+'</div><div class="meta">'+s.faculty+'</div>'+noteHtml+'</div><div class="amt"><div class="money">'+fmt(s.amount)+' ฿</div><div class="age '+ageClass(s.days)+'">เกิน '+s.days+' วัน</div></div></div>';
+  }).join('')||'<div style="padding:40px;text-align:center;color:var(--muted)">ไม่พบนักศึกษาตามเงื่อนไข</div>';
+  document.getElementById('total-label').textContent=vis.length+' ราย';
+  const allSel=vis.length>0&&vis.every(s=>selected.has(s.id));
+  document.getElementById('cb-all').classList.toggle('on',allSel);
+  document.getElementById('sel-count').textContent='เลือกแล้ว '+selected.size+' ราย';
+}
+function toggleOne(id){selected.has(id)?selected.delete(id):selected.add(id);renderRows();renderCompose();}
+function toggleAll(){const vis=visible(),all=vis.every(s=>selected.has(s.id));vis.forEach(s=>all?selected.delete(s.id):selected.add(s.id));renderRows();renderCompose();}
+function setFilter(f,el){filter=f;document.querySelectorAll('.fchip').forEach(x=>x.classList.remove('on'));el.classList.add('on');renderRows();}
+function setSearch(v){search=v;renderRows();}
+function renderCompose(){
+  const d=document.getElementById('compose'),chosen=studentsOf(currentType).filter(s=>selected.has(s.id)),n=chosen.length,t=typeObj(currentType);
+  if(n===0){d.innerHTML='<div class="empty"><div class="big">&#9993;</div><h3>ยังไม่ได้เลือกนักศึกษา</h3><p>เลือกนักศึกษาที่ค้าง'+t.name+'จากรายการด้านซ้าย</p></div>';return;}
+  const isBulk=n>1,totalAmt=chosen.reduce((a,s)=>a+s.amount,0),shown=chosen.slice(0,6);
+  const recipHtml=shown.map(s=>'<span class="recip">'+s.name+'<span class="x" onclick="toggleOne('+s.id+')">&times;</span></span>').join('')+(n>6?'<span class="recip-more">+'+(n-6)+' คน</span>':'');
+  let contactHtml='',promiseHtml='',brokenAlert='';
+  if(!isBulk){
+    const s=chosen[0];
+    contactHtml='<div class="contact-box"><div class="contact"><div class="lb">เบอร์นักศึกษา</div><div class="num">&#9742; '+s.phone+'<a class="call" href="tel:'+s.phone.replace(/-/g,'')+'">โทร</a></div></div><div class="contact"><div class="lb">เบอร์ผู้ปกครอง</div><div class="num">&#9742; '+s.parentPhone+'<a class="call" href="tel:'+s.parentPhone.replace(/-/g,'')+'">โทร</a></div></div></div>';
+    const missedCount=s.promises.filter(p=>new Date(p.date)<TODAY).length;
+    if(isBroken(s)){brokenAlert='<div class="promise-alert"><b>&#9888; ผิดนัดชำระ '+missedCount+' ครั้ง</b> — นักศึกษารับปากแล้วแต่ไม่ชำระตามนัด ควรติดตามใกล้ชิดหรือยกระดับการทวง</div>';}
+    // ไทม์ไลน์ประวัติการนัด
+    let tlItems='';
+    if(s.promises.length){
+      tlItems=s.promises.map(p=>{
+        const missed=new Date(p.date)<TODAY;
+        const cls=missed?'missed':'upcoming';
+        const tag=missed?'<span class="stat-tag missed">ไม่ชำระ ('+daysSince(p.date)+' วัน)</span>':'<span class="stat-tag upcoming">รอถึงกำหนด</span>';
+        return '<div class="tl-item"><div class="tl-dot '+cls+'"></div><div class="tl-body"><div class="d '+cls+'">นัดชำระ '+thDate(p.date)+tag+'</div><div class="via">ช่องทางที่นัด: '+p.via+'</div></div></div>';
+      }).join('');
+    }else{
+      tlItems='<div style="font-size:12px;color:var(--muted);padding:2px 0">ยังไม่มีประวัติการนัดชำระ</div>';
+    }
+    promiseHtml='<div class="field"><div class="timeline"><div class="tl-head"><span>ประวัติการนัดชำระ</span>'+(s.promises.length?'<span class="cnt">นัด '+s.promises.length+' ครั้ง</span>':'')+'</div>'+tlItems+'</div>'+
+      '<label style="margin-top:8px">เพิ่มนัดชำระใหม่</label><div class="promise-row"><input type="date"><button class="btn btn-ghost" onclick="showToast(\'บันทึกวันนัดชำระใหม่แล้ว\')">+ บันทึกนัด</button></div></div>';
+  }
+  d.innerHTML='<div class="panel-head"><h2>เขียนข้อความ<em>ทวง'+t.name+'</em></h2><span class="req">* จำเป็น</span></div>'+
+    '<div class="compose-head"><div class="badge-n" style="background:'+t.color+'"><b>'+n+'</b><small>ราย</small></div><div class="tt"><h3>'+(isBulk?'ส่งแบบกลุ่ม (Bulk)':chosen[0].name)+'</h3><div class="st">'+(isBulk?'ยอดรวม '+fmt(totalAmt)+' บาท · ระบบเติมชื่อ/ยอดเฉพาะรายให้อัตโนมัติ':chosen[0].code+' · ค้าง'+t.name+' '+fmt(chosen[0].amount)+' บาท · เกิน '+chosen[0].days+' วัน')+'</div></div></div>'+
+    brokenAlert+contactHtml+
+    '<div class="field"><label>ผู้รับ ('+n+' ราย)</label><div class="recips">'+recipHtml+'</div></div>'+
+    '<div class="field"><label>ช่องทางการส่ง <span class="req">*</span></label><div class="msg-note">เลือกช่องทาง แล้วเขียนข้อความแยกกันได้ — '+(isBulk?'ส่งถึงทุกคนที่เลือก โดยเติมค่าเฉพาะรายอัตโนมัติ':'ส่งถึงนักศึกษารายนี้')+'</div><div class="msg-tabs" id="msg-tabs"></div>'+
+    '<div class="var-bar"><button class="var-chip" onclick="insertVar(\'{ชื่อนักศึกษา}\')">ชื่อนักศึกษา</button><button class="var-chip" onclick="insertVar(\'{รหัสนักศึกษา}\')">รหัสนักศึกษา</button><button class="var-chip" onclick="insertVar(\'{ประเภทหนี้}\')">ประเภทหนี้</button><button class="var-chip" onclick="insertVar(\'{จำนวนเงิน}\')">จำนวนเงิน</button><button class="var-chip" onclick="insertVar(\'{วันครบกำหนด}\')">วันครบกำหนด</button><button class="var-chip" onclick="insertVar(\'{จำนวนวันเกิน}\')">จำนวนวันเกิน</button></div>'+
+    '<textarea class="msg-input" id="msg-input" oninput="onMsgInput(this.value)" placeholder="พิมพ์ข้อความสำหรับช่องทางนี้..."></textarea><div class="msg-count"><span>คลิกตัวแปรเพื่อแทรกที่ตำแหน่งเคอร์เซอร์</span><span><b id="msg-len">0</b> ตัวอักษร</span></div><div class="preview" id="msg-preview"></div></div>'+
+    promiseHtml+
+    '<div class="field"><label>บันทึกการติดตาม (ภายใน — นักศึกษาไม่เห็น)</label><textarea class="msg-input" style="min-height:56px" placeholder="เช่น โทรแจ้งแล้ว รับสายไม่ติด..."></textarea></div>'+
+    '<div class="send-foot"><span class="note">ส่ง '+activeChannelsCount()+' ช่องทาง × '+n+' ราย</span><div style="display:flex;gap:10px"><button class="btn btn-ghost" onclick="clearSel()">ล้างการเลือก</button><button class="btn btn-primary" onclick="sendNow()">ส่งข้อความทวง</button></div></div>';
+  renderMsgTabs();
+}
+function activeChannelsCount(){return ['app','line','adv'].filter(k=>chOn[k]).length;}
+function renderMsgTabs(){
+  const tabs=document.getElementById('msg-tabs');if(!tabs)return;
+  if(!chOn[activeCh]){const f=['app','line','adv'].find(k=>chOn[k]);activeCh=f||'app';}
+  tabs.innerHTML=['app','line','adv'].map(k=>'<button class="msg-tab '+(activeCh===k?'on':'')+' '+(chOn[k]?'active-ch':'')+'"><span class="chk" onclick="event.stopPropagation();toggleCh(\''+k+'\')">'+(chOn[k]?'\u2713':'')+'</span><span onclick="switchCh(\''+k+'\')" style="display:flex;align-items:center;gap:7px"><span class="tdot2" style="background:'+CH_META[k].color+'"></span>'+CH_META[k].label+'</span></button>').join('');
+  const ta=document.getElementById('msg-input');
+  if(ta){ta.value=msgs[activeCh]||'';const l=document.getElementById('msg-len');if(l)l.textContent=ta.value.length;}
+  renderPreview();
+}
+function switchCh(k){if(!chOn[k])chOn[k]=true;activeCh=k;renderMsgTabs();updateFootNote();}
+function toggleCh(k){chOn[k]=!chOn[k];if(chOn[k])activeCh=k;renderMsgTabs();updateFootNote();}
+function updateFootNote(){const n=document.querySelector('.send-foot .note');if(n)n.textContent='ส่ง '+activeChannelsCount()+' ช่องทาง × '+selected.size+' ราย';}
+function insertVar(v){const ta=document.getElementById('msg-input');if(!ta)return;const s=ta.selectionStart==null?ta.value.length:ta.selectionStart,e=ta.selectionEnd==null?ta.value.length:ta.selectionEnd;ta.value=ta.value.slice(0,s)+v+ta.value.slice(e);const p=s+v.length;ta.focus();ta.setSelectionRange(p,p);onMsgInput(ta.value);}
+function onMsgInput(v){msgs[activeCh]=v;const l=document.getElementById('msg-len');if(l)l.textContent=v.length;renderPreview();}
+function renderPreview(){
+  const p=document.getElementById('msg-preview');if(!p)return;
+  const t=typeObj(currentType),localSample=Object.assign({},SAMPLE,{'{ประเภทหนี้}':t.name});
+  const txt=msgs[activeCh]||'',filled=txt.replace(/\{[^}]+\}/g,m=>'<span class="filled">'+(localSample[m]!==undefined?localSample[m]:m)+'</span>');
+  p.innerHTML='<span class="tag">ตัวอย่างข้อความที่ส่งถึง '+CH_META[activeCh].label+'</span>'+(filled||'<span style="color:var(--muted)">— ยังไม่มีข้อความ —</span>');
+}
+function clearSel(){selected.clear();renderRows();renderCompose();}
+function sendNow(){const n=selected.size,c=activeChannelsCount();showToast('ส่งข้อความทวง'+typeObj(currentType).name+' '+c+' ช่องทาง ให้ '+n+' ราย เรียบร้อย');selected.clear();renderRows();renderCompose();}
+let toastTimer;
+function showToast(msg){const t=document.getElementById('toast');document.getElementById('toast-msg').textContent=msg;t.classList.add('show');clearTimeout(toastTimer);toastTimer=setTimeout(()=>t.classList.remove('show'),2400);}
+document.querySelectorAll('.lang button').forEach(b=>b.onclick=()=>{document.querySelectorAll('.lang button').forEach(x=>x.classList.remove('on'));b.classList.add('on');});
+renderStep1();
+</script>
+</body>
+</html>
