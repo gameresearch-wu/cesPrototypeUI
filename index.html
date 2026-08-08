@@ -123,11 +123,19 @@
   .ic-app{background:var(--purple)}.ic-line{background:var(--green)}.ic-adv{background:var(--orange)}
 
   /* message editor */
+  .msg-tabs{display:flex;gap:6px;margin-bottom:10px;border-bottom:1px solid var(--line)}
+  .msg-tab{font-family:inherit;font-size:12.5px;font-weight:600;color:var(--muted);background:transparent;border:none;padding:8px 12px;cursor:pointer;border-bottom:2px solid transparent;margin-bottom:-1px;display:flex;align-items:center;gap:7px;transition:.12s}
+  .msg-tab:hover{color:var(--ink)}
+  .msg-tab.on{color:var(--purple);border-bottom-color:var(--purple)}
+  .msg-tab .tdot2{width:8px;height:8px;border-radius:2px}
+  .msg-tab.disabled{opacity:.4;cursor:not-allowed}
+  .msg-tab .off-tag{font-size:10px;font-weight:500;color:var(--muted)}
+  .msg-note{font-size:11.5px;color:var(--muted);background:var(--purple-50);border-radius:8px;padding:7px 10px;margin-bottom:10px;line-height:1.5}
   .var-bar{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:8px}
   .var-chip{font-size:11.5px;font-weight:600;color:var(--purple);background:var(--purple-50);border:1px solid var(--purple-100);border-radius:999px;padding:4px 10px;cursor:pointer;transition:.12s;font-family:inherit}
   .var-chip:hover{background:var(--purple);color:#fff;border-color:var(--purple)}
   .var-chip::before{content:"+ ";opacity:.6}
-  .msg-input{width:100%;min-height:96px;resize:vertical;font-family:inherit;font-size:13px;line-height:1.7;color:var(--ink);background:var(--card);border:1px solid var(--line);border-radius:var(--radius-sm);padding:11px 13px;outline:none;transition:.12s}
+  .msg-input{width:100%;min-height:100px;resize:vertical;font-family:inherit;font-size:13px;line-height:1.7;color:var(--ink);background:var(--card);border:1px solid var(--line);border-radius:var(--radius-sm);padding:11px 13px;outline:none;transition:.12s}
   .msg-input:focus{border-color:var(--purple-600);box-shadow:0 0 0 3px var(--purple-100)}
   .msg-count{font-size:11px;color:var(--muted);margin-top:5px;display:flex;justify-content:space-between}
   .msg-count b{color:var(--purple);font-weight:600}
@@ -204,20 +212,36 @@ const COLORS = [
 let RULES = [
   {id:1, lvl:1, color:'#6B4E9E', on:true, count:'—',
    name:'แจ้งเตือนก่อนครบกำหนด', timeType:'before', timeVal:3,
-   type:'ทุกประเภท', freq:'ครั้งเดียว', ch:{app:true,line:false,adv:false}, msgTo:'ถึงนักศึกษา',
-   msg:'เรียน {ชื่อนักศึกษา}\nท่านมียอดค้างชำระ {ประเภทหนี้} จำนวน {จำนวนเงิน} บาท ครบกำหนดวันที่ {วันครบกำหนด} กรุณาชำระภายในกำหนด'},
+   type:'ทุกประเภท', freq:'ครั้งเดียว', ch:{app:true,line:false,adv:false},
+   msgs:{
+     app:'เรียน {ชื่อนักศึกษา}\nท่านมียอดค้างชำระ {ประเภทหนี้} จำนวน {จำนวนเงิน} บาท ครบกำหนดวันที่ {วันครบกำหนด} กรุณาชำระภายในกำหนด',
+     line:'',
+     adv:''
+   }},
   {id:2, lvl:2, color:'#7C5FB8', on:true, count:82,
    name:'ทวงนักศึกษา (เกินกำหนด)', timeType:'range', timeFrom:1, timeTo:15,
-   type:'ทุกประเภท', freq:'ทุก 3 วัน', ch:{app:true,line:false,adv:false}, msgTo:'ถึงนักศึกษา',
-   msg:'เรียน {ชื่อนักศึกษา}\nท่านมียอดค้างชำระเกินกำหนดแล้ว {จำนวนวันเกิน} วัน จำนวน {จำนวนเงิน} บาท กรุณาติดต่อชำระโดยด่วน'},
+   type:'ทุกประเภท', freq:'ทุก 3 วัน', ch:{app:true,line:false,adv:false},
+   msgs:{
+     app:'เรียน {ชื่อนักศึกษา}\nท่านมียอดค้างชำระเกินกำหนดแล้ว {จำนวนวันเกิน} วัน จำนวน {จำนวนเงิน} บาท กรุณาติดต่อชำระโดยด่วน',
+     line:'',
+     adv:''
+   }},
   {id:3, lvl:3, color:'#E8823C', on:true, count:39,
    name:'แจ้งผู้ปกครอง', timeType:'range', timeFrom:16, timeTo:30,
-   type:'ทุกประเภท', freq:'ทุก 7 วัน', ch:{app:true,line:true,adv:false}, msgTo:'ถึงผู้ปกครอง',
-   msg:'เรียนผู้ปกครองของ {ชื่อนักศึกษา} รหัส {รหัสนักศึกษา}\nนักศึกษามียอดค้างชำระ {จำนวนเงิน} บาท เกินกำหนด {จำนวนวันเกิน} วัน ขอความอนุเคราะห์ติดตามการชำระ'},
+   type:'ทุกประเภท', freq:'ทุก 7 วัน', ch:{app:true,line:true,adv:false},
+   msgs:{
+     app:'เรียน {ชื่อนักศึกษา}\nท่านมียอดค้างชำระเกินกำหนด {จำนวนวันเกิน} วัน จำนวน {จำนวนเงิน} บาท ทางมหาวิทยาลัยได้แจ้งผู้ปกครองแล้ว กรุณาติดต่อชำระโดยด่วน',
+     line:'เรียนผู้ปกครองของ {ชื่อนักศึกษา} รหัส {รหัสนักศึกษา}\nนักศึกษามียอดค้างชำระ {จำนวนเงิน} บาท เกินกำหนด {จำนวนวันเกิน} วัน ขอความอนุเคราะห์ท่านช่วยติดตามการชำระ ขอบพระคุณค่ะ',
+     adv:''
+   }},
   {id:4, lvl:4, color:'#E05656', on:false, count:7,
    name:'แจ้งอาจารย์ที่ปรึกษา + ส่งเข้าคิว', timeType:'over', timeVal:30,
-   type:'ทุกประเภท', freq:'ทุก 7 วัน', ch:{app:true,line:true,adv:true}, msgTo:'ถึงอาจารย์ที่ปรึกษา', escalate:true,
-   msg:'เรียนอาจารย์ที่ปรึกษาของ {ชื่อนักศึกษา} รหัส {รหัสนักศึกษา}\nนักศึกษามียอดค้างชำระเกิน 30 วัน จำนวน {จำนวนเงิน} บาท ขอความอนุเคราะห์ช่วยติดตาม'}
+   type:'ทุกประเภท', freq:'ทุก 7 วัน', ch:{app:true,line:true,adv:true}, escalate:true,
+   msgs:{
+     app:'เรียน {ชื่อนักศึกษา}\nยอดค้างชำระของท่านเกินกำหนดมากกว่า 30 วันแล้ว จำนวน {จำนวนเงิน} บาท เรื่องได้ถูกส่งต่อให้อาจารย์ที่ปรึกษาและเจ้าหน้าที่การเงินแล้ว กรุณาติดต่อด่วนที่สุด',
+     line:'เรียนผู้ปกครองของ {ชื่อนักศึกษา} รหัส {รหัสนักศึกษา}\nนักศึกษามียอดค้างชำระเกิน 30 วัน จำนวน {จำนวนเงิน} บาท ขอความอนุเคราะห์ท่านติดต่อกลับมหาวิทยาลัยโดยด่วน',
+     adv:'เรียนอาจารย์ที่ปรึกษาของ {ชื่อนักศึกษา} รหัส {รหัสนักศึกษา}\nนักศึกษามียอดค้างชำระเกิน 30 วัน จำนวน {จำนวนเงิน} บาท ขอความอนุเคราะห์อาจารย์ช่วยติดตามและให้คำปรึกษานักศึกษาด้วยค่ะ'
+   }}
 ];
 let nextId = 5;
 let selected = 1;
@@ -361,7 +385,9 @@ function renderDetail(){
     </div>`:''}
 
     <div class="field">
-      <label>ข้อความแจ้งเตือน (${r.msgTo}) <span class="req">*</span></label>
+      <label>ข้อความแจ้งเตือน <span class="req">*</span></label>
+      <div class="msg-note">แต่ละช่องทางใช้ข้อความคนละแบบได้ — เลือกช่องทางด้านล่างเพื่อเขียนข้อความของช่องทางนั้น (ช่องทางที่ปิดอยู่จะยังไม่ถูกส่ง)</div>
+      <div class="msg-tabs" id="msg-tabs"></div>
       <div class="var-bar">
         <button class="var-chip" onclick="insertVar('{ชื่อนักศึกษา}')">ชื่อนักศึกษา</button>
         <button class="var-chip" onclick="insertVar('{รหัสนักศึกษา}')">รหัสนักศึกษา</button>
@@ -370,8 +396,8 @@ function renderDetail(){
         <button class="var-chip" onclick="insertVar('{วันครบกำหนด}')">วันครบกำหนด</button>
         <button class="var-chip" onclick="insertVar('{จำนวนวันเกิน}')">จำนวนวันเกิน</button>
       </div>
-      <textarea class="msg-input" id="msg-input" oninput="onMsgInput(this.value)" placeholder="พิมพ์ข้อความแจ้งเตือน... กดปุ่มตัวแปรด้านบนเพื่อแทรกค่าที่ระบบจะเติมให้อัตโนมัติ">${r.msg}</textarea>
-      <div class="msg-count"><span>คลิกตัวแปรเพื่อแทรกที่ตำแหน่งเคอร์เซอร์</span><span><b id="msg-len">${r.msg.length}</b> ตัวอักษร</span></div>
+      <textarea class="msg-input" id="msg-input" oninput="onMsgInput(this.value)" placeholder="พิมพ์ข้อความสำหรับช่องทางนี้..."></textarea>
+      <div class="msg-count"><span>คลิกตัวแปรเพื่อแทรกที่ตำแหน่งเคอร์เซอร์</span><span><b id="msg-len">0</b> ตัวอักษร</span></div>
       <div class="preview" id="msg-preview"></div>
     </div>
 
@@ -383,10 +409,10 @@ function renderDetail(){
       </div>
     </div>
   `;
-  renderPreview();
+  renderMsgTabs();
 }
 
-/* ---- message editor ---- */
+/* ---- message editor (แยกตามช่องทาง) ---- */
 const SAMPLE = {
   '{ชื่อนักศึกษา}':'นายสมชาย ใจดี',
   '{รหัสนักศึกษา}':'65123456',
@@ -395,6 +421,41 @@ const SAMPLE = {
   '{วันครบกำหนด}':'15 พ.ย. 2569',
   '{จำนวนวันเกิน}':'12'
 };
+const CH_META = {
+  app:{label:'แอปนักศึกษา', color:'#6B4E9E'},
+  line:{label:'ผู้ปกครอง (Line OA)', color:'#3EA97A'},
+  adv:{label:'อาจารย์ที่ปรึกษา', color:'#E8823C'}
+};
+let activeCh = 'app';
+
+function renderMsgTabs(){
+  const r = cur();
+  const tabs = document.getElementById('msg-tabs');
+  if(!tabs) return;
+  // ถ้าช่องทางที่เลือกอยู่ถูกปิด ให้เด้งไปช่องทางแรกที่เปิด
+  if(!r.ch[activeCh]){
+    const firstOn = ['app','line','adv'].find(k=>r.ch[k]);
+    activeCh = firstOn || 'app';
+  }
+  tabs.innerHTML = ['app','line','adv'].map(k=>{
+    const on = r.ch[k];
+    return `<button class="msg-tab ${activeCh===k?'on':''} ${on?'':'disabled'}"
+      ${on?`onclick="switchCh('${k}')"`:''}>
+      <span class="tdot2" style="background:${CH_META[k].color}"></span>${CH_META[k].label}
+      ${on?'':'<span class="off-tag">(ปิด)</span>'}
+    </button>`;
+  }).join('');
+  // เติมข้อความของช่องทางที่เลือกลง textarea
+  const ta = document.getElementById('msg-input');
+  if(ta){
+    ta.value = r.msgs[activeCh] || '';
+    const lenEl = document.getElementById('msg-len');
+    if(lenEl) lenEl.textContent = ta.value.length;
+  }
+  renderPreview();
+}
+function switchCh(k){ activeCh = k; renderMsgTabs(); }
+
 function insertVar(v){
   const ta = document.getElementById('msg-input');
   if(!ta) return;
@@ -406,7 +467,7 @@ function insertVar(v){
   onMsgInput(ta.value);
 }
 function onMsgInput(v){
-  cur().msg = v;
+  cur().msgs[activeCh] = v;
   const lenEl = document.getElementById('msg-len');
   if(lenEl) lenEl.textContent = v.length;
   renderPreview();
@@ -414,16 +475,15 @@ function onMsgInput(v){
 function renderPreview(){
   const p = document.getElementById('msg-preview');
   if(!p) return;
-  let txt = cur().msg || '';
-  let filled = txt.replace(/\{[^}]+\}/g, m => SAMPLE[m]!==undefined
-    ? `<span class="filled">${SAMPLE[m]}</span>`
-    : `<span class="filled">${m}</span>`);
-  p.innerHTML = `<span class="tag">ตัวอย่างเมื่อระบบเติมค่าจริง</span>${filled || '<span style="color:var(--muted)">— ยังไม่มีข้อความ —</span>'}`;
+  let txt = cur().msgs[activeCh] || '';
+  let filled = txt.replace(/\{[^}]+\}/g, m => `<span class="filled">${SAMPLE[m]!==undefined?SAMPLE[m]:m}</span>`);
+  const to = CH_META[activeCh].label;
+  p.innerHTML = `<span class="tag">ตัวอย่างข้อความที่ส่งถึง ${to} (เมื่อระบบเติมค่าจริง)</span>${filled || '<span style="color:var(--muted)">— ยังไม่มีข้อความสำหรับช่องทางนี้ —</span>'}`;
 }
 
 /* ---- actions ---- */
 function cur(){ return RULES.find(x=>x.id===selected); }
-function select(id){ selected=id; renderRows(); renderDetail(); }
+function select(id){ selected=id; activeCh='app'; renderRows(); renderDetail(); }
 
 function setField(f,v){ cur()[f]=v; renderRows(); if(f==='name'||f==='type'){/*keep detail*/} }
 function setColor(v){ cur().color=v; renderRows(); renderDetail(); }
@@ -443,15 +503,15 @@ function toggleRule(el){
   el.closest('.enable-line').querySelector('.l').textContent = r.on?'เปิดใช้งานกฎนี้อยู่':'ปิดใช้งานกฎนี้อยู่';
   showToast(r.on?'เปิดใช้งานกฎแล้ว':'ปิดใช้งานกฎแล้ว');
 }
-function toggleCh(k,el){ cur().ch[k]=!cur().ch[k]; el.classList.toggle('on'); }
+function toggleCh(k,el){ cur().ch[k]=!cur().ch[k]; el.classList.toggle('on'); renderMsgTabs(); }
 
 function addRule(){
   const maxLvl = Math.max(0,...RULES.map(r=>r.lvl));
   const r = {
     id:nextId++, lvl:maxLvl+1, color:'#7C5FB8', on:false, count:0,
     name:'กฎใหม่', timeType:'range', timeFrom:1, timeTo:7,
-    type:'ทุกประเภท', freq:'ครั้งเดียว', ch:{app:true,line:false,adv:false}, msgTo:'ถึงนักศึกษา',
-    msg:'เรียน {ชื่อนักศึกษา}\nท่านมียอดค้างชำระ {จำนวนเงิน} บาท กรุณาติดต่อชำระ'
+    type:'ทุกประเภท', freq:'ครั้งเดียว', ch:{app:true,line:false,adv:false},
+    msgs:{ app:'เรียน {ชื่อนักศึกษา}\nท่านมียอดค้างชำระ {จำนวนเงิน} บาท กรุณาติดต่อชำระ', line:'', adv:'' }
   };
   RULES.push(r); selected=r.id;
   renderRows(); renderDetail(); showToast('เพิ่มกฎระดับ '+r.lvl+' แล้ว — กรอกรายละเอียดทางขวา');
