@@ -1,0 +1,477 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CES — ตั้งกฎการทวงหนี้อัตโนมัติ</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Thai:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --purple:#6B4E9E;--purple-600:#7C5FB8;--purple-100:#EFEAF7;--purple-50:#F7F4FC;
+    --orange:#E8823C;--orange-100:#FCF0E6;--red:#E05656;--red-100:#FBEAEA;
+    --green:#3EA97A;--green-100:#E7F5EF;--ink:#2B2540;--muted:#8A8398;
+    --line:#EBE8F0;--bg:#F4F2F8;--card:#FFFFFF;--radius:16px;--radius-sm:10px;
+    --shadow:0 1px 3px rgba(43,37,64,.05),0 10px 30px rgba(43,37,64,.05);
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:'IBM Plex Sans Thai',sans-serif;background:var(--bg);color:var(--ink);-webkit-font-smoothing:antialiased;font-size:14px;line-height:1.5}
+
+  .topbar{background:var(--card);border-bottom:1px solid var(--line);padding:11px 22px;display:flex;align-items:center;gap:14px;position:sticky;top:0;z-index:50}
+  .burger{width:20px;display:flex;flex-direction:column;gap:4px;cursor:pointer}
+  .burger span{height:2px;background:var(--ink);border-radius:2px}
+  .brand{display:flex;align-items:center;gap:8px;font-weight:700;color:var(--purple)}
+  .brand .logo{background:var(--purple);color:#fff;font-weight:700;font-size:12px;padding:4px 8px;border-radius:8px;letter-spacing:.5px}
+  .crumb{color:var(--purple);font-weight:600}
+  .spacer{flex:1}
+  .lang{display:flex;gap:2px}
+  .lang button{border:none;background:transparent;color:var(--muted);font-family:inherit;padding:4px 8px;border-radius:6px;cursor:pointer;font-weight:600;font-size:12px}
+  .lang button.on{background:var(--purple);color:#fff}
+  .avatar{width:30px;height:30px;border-radius:50%;background:linear-gradient(135deg,var(--purple),var(--orange))}
+  .backline{padding:8px 22px 0;color:var(--purple);font-size:13px;font-weight:500;display:flex;align-items:center;gap:6px;cursor:pointer}
+
+  .wrap{max-width:1220px;margin:0 auto;padding:18px 22px 50px}
+  .grid{display:grid;grid-template-columns:1.15fr 1fr;gap:20px;align-items:start}
+
+  .panel{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);box-shadow:var(--shadow);padding:20px}
+  .panel-head{display:flex;align-items:baseline;justify-content:space-between;margin-bottom:6px}
+  .panel-head h2{font-size:16px;font-weight:700}
+  .panel-head h2 em{color:var(--purple);font-style:normal}
+  .panel-head .req{color:var(--red);font-size:12px;font-weight:600}
+  .sub{color:var(--muted);font-size:12.5px;margin-bottom:16px}
+
+  .mini{display:flex;gap:8px;margin-bottom:16px;flex-wrap:wrap}
+  .mini .m{flex:1;min-width:110px;background:var(--purple-50);border:1px solid var(--line);border-radius:var(--radius-sm);padding:9px 12px}
+  .mini .m .k{font-size:11px;color:var(--muted);font-weight:500}
+  .mini .m .v{font-size:17px;font-weight:700;margin-top:2px}
+  .mini .m .v small{font-size:11px;color:var(--muted);font-weight:500}
+
+  .searchbar{display:flex;align-items:center;gap:8px;background:var(--purple-50);border:1px solid var(--line);border-radius:999px;padding:8px 14px;margin-bottom:12px}
+  .searchbar input{border:none;background:transparent;font-family:inherit;font-size:13px;width:100%;outline:none;color:var(--ink)}
+  .searchbar .mag{color:var(--muted)}
+
+  .rows-head{display:grid;grid-template-columns:26px 1fr 70px 30px;gap:8px;padding:8px 10px;font-size:12px;font-weight:600;color:var(--muted);border-bottom:1px solid var(--line)}
+  .rows-head span:nth-child(3){text-align:right}
+  .rows{max-height:520px;overflow-y:auto}
+  .rows::-webkit-scrollbar{width:6px}.rows::-webkit-scrollbar-thumb{background:var(--line);border-radius:6px}
+
+  .row{display:grid;grid-template-columns:26px 1fr 70px 30px;gap:8px;align-items:center;padding:12px 10px;border-bottom:1px solid var(--line);cursor:pointer;transition:.12s;border-left:3px solid transparent}
+  .row:hover{background:var(--purple-50)}
+  .row.sel{background:var(--purple-100);border-left-color:var(--purple)}
+  .status-dot{width:9px;height:9px;border-radius:50%;justify-self:center}
+  .s-on{background:var(--green);box-shadow:0 0 0 3px var(--green-100)}
+  .s-off{background:#C9C3D6}
+  .row .name{min-width:0}
+  .row .name .t{font-weight:600;font-size:13.5px;display:flex;align-items:center;gap:8px}
+  .row .name .lvlbadge{font-size:10px;font-weight:700;color:#fff;padding:1px 7px;border-radius:999px;flex-shrink:0;white-space:nowrap}
+  .row .name .c{font-size:12px;color:var(--muted);margin-top:3px}
+  .row .cnt{text-align:right;font-size:11px;color:var(--muted);line-height:1.2}
+  .row .cnt b{color:var(--ink);font-size:14px;font-weight:700}
+  .row .chev{color:var(--muted);text-align:center;font-size:12px}
+  .row.sel .chev{color:var(--purple)}
+
+  .add-row{margin-top:14px}
+  .btn{font-family:inherit;font-weight:600;font-size:13px;border-radius:999px;padding:10px 18px;cursor:pointer;border:1px solid transparent;transition:.15s}
+  .btn-primary{background:var(--purple);color:#fff}
+  .btn-primary:hover{background:var(--purple-600)}
+  .btn-ghost{background:transparent;color:var(--purple);border:1px solid var(--line)}
+  .btn-ghost:hover{background:var(--purple-100)}
+  .btn-add{background:var(--purple-50);color:var(--purple);border:1px dashed var(--purple-600);width:100%}
+  .btn-add:hover{background:var(--purple-100)}
+  .btn-danger{background:transparent;color:var(--red);border:1px solid var(--red-100)}
+  .btn-danger:hover{background:var(--red-100)}
+
+  .detail-title{display:flex;align-items:center;gap:12px;margin-bottom:4px}
+  .detail-title .lvl{min-width:46px;height:46px;border-radius:12px;display:flex;flex-direction:column;align-items:center;justify-content:center;color:#fff;flex-shrink:0}
+  .detail-title .lvl small{font-size:8px;font-weight:600;opacity:.85}
+  .detail-title .lvl b{font-size:19px;line-height:1}
+  .detail-title .tt h3{font-size:16px;font-weight:700}
+  .detail-title .tt .st{font-size:12px;color:var(--muted)}
+
+  .enable-line{display:flex;align-items:center;justify-content:space-between;background:var(--purple-50);border:1px solid var(--line);border-radius:var(--radius-sm);padding:11px 14px;margin:16px 0}
+  .enable-line .l{font-size:13px;font-weight:600}
+  .toggle{width:44px;height:26px;border-radius:999px;background:#D7D2E2;position:relative;cursor:pointer;transition:.2s;flex-shrink:0}
+  .toggle::after{content:"";position:absolute;top:3px;left:3px;width:20px;height:20px;border-radius:50%;background:#fff;transition:.2s;box-shadow:0 1px 3px rgba(0,0,0,.2)}
+  .toggle.on{background:var(--green)}.toggle.on::after{left:21px}
+
+  .field{margin-bottom:14px}
+  .field > label{font-size:12px;font-weight:600;color:var(--muted);display:block;margin-bottom:6px}
+  .field .req{color:var(--red)}
+  .hint{font-size:11px;color:var(--muted);margin-top:5px;line-height:1.4}
+  .control{background:var(--card);border:1px solid var(--line);border-radius:var(--radius-sm);padding:10px 12px;display:flex;align-items:center;gap:8px;font-size:13px;color:var(--ink)}
+  .control select,.control input{border:none;background:transparent;font-family:inherit;font-size:13px;color:var(--ink);outline:none;flex:1;min-width:0}
+  .control input[type=number]{max-width:56px;flex:none;text-align:center;background:var(--purple-50);border-radius:6px;padding:4px 2px}
+  .two{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+
+  /* level stepper */
+  .lvl-picker{display:flex;align-items:center;gap:10px}
+  .lvl-picker .step{width:34px;height:34px;border-radius:9px;border:1px solid var(--line);background:var(--purple-50);color:var(--purple);font-size:18px;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:.12s}
+  .lvl-picker .step:hover{background:var(--purple);color:#fff}
+  .lvl-picker .lvl-now{flex:1;text-align:center;background:var(--card);border:1px solid var(--line);border-radius:var(--radius-sm);padding:8px;font-weight:700;font-size:15px}
+  .lvl-picker .lvl-now small{display:block;font-size:10px;color:var(--muted);font-weight:500}
+
+  /* color picker */
+  .swatches{display:flex;gap:8px}
+  .swatch{width:32px;height:32px;border-radius:8px;cursor:pointer;border:2px solid transparent;transition:.12s;position:relative}
+  .swatch.on{border-color:var(--ink)}
+  .swatch.on::after{content:"✓";position:absolute;inset:0;display:flex;align-items:center;justify-content:center;color:#fff;font-size:13px;font-weight:700}
+
+  .ch-group{display:flex;flex-direction:column;gap:8px}
+  .ch{display:flex;align-items:center;justify-content:space-between;background:var(--card);border:1px solid var(--line);border-radius:var(--radius-sm);padding:10px 12px}
+  .ch .lbl{font-size:13px;font-weight:500;display:flex;align-items:center;gap:9px}
+  .ch .lbl .ico{width:26px;height:26px;border-radius:7px;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;color:#fff}
+  .ic-app{background:var(--purple)}.ic-line{background:var(--green)}.ic-adv{background:var(--orange)}
+
+  /* message editor */
+  .var-bar{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:8px}
+  .var-chip{font-size:11.5px;font-weight:600;color:var(--purple);background:var(--purple-50);border:1px solid var(--purple-100);border-radius:999px;padding:4px 10px;cursor:pointer;transition:.12s;font-family:inherit}
+  .var-chip:hover{background:var(--purple);color:#fff;border-color:var(--purple)}
+  .var-chip::before{content:"+ ";opacity:.6}
+  .msg-input{width:100%;min-height:96px;resize:vertical;font-family:inherit;font-size:13px;line-height:1.7;color:var(--ink);background:var(--card);border:1px solid var(--line);border-radius:var(--radius-sm);padding:11px 13px;outline:none;transition:.12s}
+  .msg-input:focus{border-color:var(--purple-600);box-shadow:0 0 0 3px var(--purple-100)}
+  .msg-count{font-size:11px;color:var(--muted);margin-top:5px;display:flex;justify-content:space-between}
+  .msg-count b{color:var(--purple);font-weight:600}
+  .preview{background:var(--purple-50);border:1px dashed var(--purple-600);border-radius:var(--radius-sm);padding:11px 13px;font-size:13px;line-height:1.8;margin-top:10px;white-space:pre-wrap}
+  .preview .tag{font-size:11px;color:var(--muted);font-weight:600;margin-bottom:6px;display:block}
+  .preview .filled{color:var(--purple);font-weight:600}
+
+  .detail-foot{display:flex;gap:10px;justify-content:space-between;margin-top:20px;padding-top:16px;border-top:1px solid var(--line)}
+
+  .empty{display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;color:var(--muted);padding:60px 20px}
+  .empty .big{width:56px;height:56px;border-radius:16px;background:var(--purple-50);display:flex;align-items:center;justify-content:center;font-size:24px;margin-bottom:14px}
+  .empty h3{color:var(--ink);font-size:15px;margin-bottom:4px}
+
+  .toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(80px);background:var(--ink);color:#fff;padding:12px 20px;border-radius:999px;font-size:13px;font-weight:500;box-shadow:0 8px 24px rgba(0,0,0,.25);opacity:0;transition:.3s;z-index:100;display:flex;align-items:center;gap:9px}
+  .toast.show{transform:translateX(-50%) translateY(0);opacity:1}
+  .toast .tdot{width:8px;height:8px;border-radius:50%;background:var(--green)}
+
+  @media(max-width:900px){.grid{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <div class="burger"><span></span><span></span><span></span></div>
+  <div class="brand"><span class="logo">CES</span></div>
+  <div class="crumb">ตั้งกฎการทวงหนี้อัตโนมัติ</div>
+  <div class="spacer"></div>
+  <div class="lang"><button class="on">TH</button><button>EN</button></div>
+  <div class="avatar"></div>
+</div>
+<div class="backline">← ย้อนกลับหน้าเลือกระบบติดตามหนี้</div>
+
+<div class="wrap">
+  <div class="grid">
+
+    <div class="panel">
+      <div class="panel-head">
+        <h2>รายการกฎการทวง <em>อัตโนมัติ</em></h2>
+        <span class="req">รอบตรวจสอบ 09:00 น. ทุกวัน</span>
+      </div>
+      <div class="sub">ระบบไล่ทวงตามลำดับระดับจากน้อยไปมาก · เลือกกฎเพื่อแก้ไขทางด้านขวา</div>
+
+      <div class="mini">
+        <div class="m"><div class="k">กฎที่เปิดใช้งาน</div><div class="v" id="stat-on">3 <small>/ 4</small></div></div>
+        <div class="m"><div class="k">ทวงอัตโนมัติวันนี้</div><div class="v">128 <small>ราย</small></div></div>
+        <div class="m"><div class="k">รอส่งเข้าคิว จนท.</div><div class="v">7 <small>ราย</small></div></div>
+      </div>
+
+      <div class="searchbar"><span class="mag">⌕</span><input placeholder="ค้นหากฎการทวง"></div>
+
+      <div class="rows-head"><span>สถานะ</span><span>กฎ / เงื่อนไข</span><span>เข้าเกณฑ์</span><span></span></div>
+      <div class="rows" id="rows"></div>
+
+      <div class="add-row">
+        <button class="btn btn-add" onclick="addRule()">+ เพิ่มกฎการทวง (ระดับใหม่)</button>
+      </div>
+    </div>
+
+    <div class="panel" id="detail"></div>
+
+  </div>
+</div>
+
+<div class="toast" id="toast"><span class="tdot"></span><span id="toast-msg"></span></div>
+
+<script>
+const COLORS = [
+  {key:'purple', val:'#6B4E9E'},
+  {key:'purple6',val:'#7C5FB8'},
+  {key:'orange', val:'#E8823C'},
+  {key:'red',    val:'#E05656'}
+];
+
+let RULES = [
+  {id:1, lvl:1, color:'#6B4E9E', on:true, count:'—',
+   name:'แจ้งเตือนก่อนครบกำหนด', timeType:'before', timeVal:3,
+   type:'ทุกประเภท', freq:'ครั้งเดียว', ch:{app:true,line:false,adv:false}, msgTo:'ถึงนักศึกษา',
+   msg:'เรียน {ชื่อนักศึกษา}\nท่านมียอดค้างชำระ {ประเภทหนี้} จำนวน {จำนวนเงิน} บาท ครบกำหนดวันที่ {วันครบกำหนด} กรุณาชำระภายในกำหนด'},
+  {id:2, lvl:2, color:'#7C5FB8', on:true, count:82,
+   name:'ทวงนักศึกษา (เกินกำหนด)', timeType:'range', timeFrom:1, timeTo:15,
+   type:'ทุกประเภท', freq:'ทุก 3 วัน', ch:{app:true,line:false,adv:false}, msgTo:'ถึงนักศึกษา',
+   msg:'เรียน {ชื่อนักศึกษา}\nท่านมียอดค้างชำระเกินกำหนดแล้ว {จำนวนวันเกิน} วัน จำนวน {จำนวนเงิน} บาท กรุณาติดต่อชำระโดยด่วน'},
+  {id:3, lvl:3, color:'#E8823C', on:true, count:39,
+   name:'แจ้งผู้ปกครอง', timeType:'range', timeFrom:16, timeTo:30,
+   type:'ทุกประเภท', freq:'ทุก 7 วัน', ch:{app:true,line:true,adv:false}, msgTo:'ถึงผู้ปกครอง',
+   msg:'เรียนผู้ปกครองของ {ชื่อนักศึกษา} รหัส {รหัสนักศึกษา}\nนักศึกษามียอดค้างชำระ {จำนวนเงิน} บาท เกินกำหนด {จำนวนวันเกิน} วัน ขอความอนุเคราะห์ติดตามการชำระ'},
+  {id:4, lvl:4, color:'#E05656', on:false, count:7,
+   name:'แจ้งอาจารย์ที่ปรึกษา + ส่งเข้าคิว', timeType:'over', timeVal:30,
+   type:'ทุกประเภท', freq:'ทุก 7 วัน', ch:{app:true,line:true,adv:true}, msgTo:'ถึงอาจารย์ที่ปรึกษา', escalate:true,
+   msg:'เรียนอาจารย์ที่ปรึกษาของ {ชื่อนักศึกษา} รหัส {รหัสนักศึกษา}\nนักศึกษามียอดค้างชำระเกิน 30 วัน จำนวน {จำนวนเงิน} บาท ขอความอนุเคราะห์ช่วยติดตาม'}
+];
+let nextId = 5;
+let selected = 1;
+
+function updateStat(){
+  const on = RULES.filter(r=>r.on).length;
+  document.getElementById('stat-on').innerHTML = `${on} <small>/ ${RULES.length}</small>`;
+}
+
+function renderRows(){
+  const el = document.getElementById('rows');
+  el.innerHTML = RULES.map(r=>{
+    let cond='';
+    if(r.timeType==='before') cond=`ล่วงหน้า ${r.timeVal} วัน`;
+    else if(r.timeType==='over') cond=`เกิน > ${r.timeVal} วัน`;
+    else cond=`เกิน ${r.timeFrom}–${r.timeTo} วัน`;
+    return `
+    <div class="row ${selected===r.id?'sel':''}" onclick="select(${r.id})">
+      <span class="status-dot ${r.on?'s-on':'s-off'}"></span>
+      <div class="name">
+        <div class="t"><span class="lvlbadge" style="background:${r.color}">ระดับ ${r.lvl}</span>${r.name}</div>
+        <div class="c">${cond} · ${r.type}</div>
+      </div>
+      <div class="cnt"><b>${r.count}</b><br>ราย</div>
+      <div class="chev">${selected===r.id?'●':'›'}</div>
+    </div>`;
+  }).join('');
+  updateStat();
+}
+
+function chLabel(k){return k==='app'?'แอปนักศึกษา':k==='line'?'ผู้ปกครอง (Line OA)':'อาจารย์ที่ปรึกษา'}
+function chIcoClass(k){return k==='app'?'ic-app':k==='line'?'ic-line':'ic-adv'}
+function chIcoText(k){return k==='app'?'นศ':k==='line'?'LINE':'อจ'}
+
+function timeControl(r){
+  if(r.timeType==='before') return `แจ้งล่วงหน้า <input type="number" value="${r.timeVal}" onchange="setField('timeVal',this.value)"> วัน ก่อนครบกำหนด`;
+  if(r.timeType==='over') return `เกินกำหนดมากกว่า <input type="number" value="${r.timeVal}" onchange="setField('timeVal',this.value)"> วัน`;
+  return `เกินกำหนด <input type="number" value="${r.timeFrom}" onchange="setField('timeFrom',this.value)"> ถึง <input type="number" value="${r.timeTo}" onchange="setField('timeTo',this.value)"> วัน`;
+}
+
+function renderDetail(){
+  const r = RULES.find(x=>x.id===selected);
+  const d = document.getElementById('detail');
+  if(!r){
+    d.innerHTML = `<div class="empty"><div class="big">◐</div><h3>เลือกกฎเพื่อแก้ไข</h3><p>เลือกกฎการทวงจากรายการด้านซ้าย หรือกดเพิ่มกฎใหม่</p></div>`;
+    return;
+  }
+  d.innerHTML = `
+    <div class="panel-head"><h2>รายละเอียด<em>กฎ</em></h2><span class="req">* จำเป็น</span></div>
+
+    <div class="detail-title">
+      <div class="lvl" style="background:${r.color}"><small>ระดับ</small><b>${r.lvl}</b></div>
+      <div class="tt"><h3>${r.name}</h3><div class="st">${r.count!=='—'? r.count+' รายเข้าเกณฑ์ในขณะนี้' : 'ยังไม่มีรายเข้าเกณฑ์'}</div></div>
+    </div>
+
+    <div class="enable-line">
+      <span class="l">${r.on?'เปิดใช้งานกฎนี้อยู่':'ปิดใช้งานกฎนี้อยู่'}</span>
+      <div class="toggle ${r.on?'on':''}" onclick="toggleRule(this)"></div>
+    </div>
+
+    <!-- ===== ระดับ (แก้ไขได้) ===== -->
+    <div class="field">
+      <label>ลำดับระดับ (Level) <span class="req">*</span></label>
+      <div class="lvl-picker">
+        <button class="step" onclick="changeLvl(-1)">−</button>
+        <div class="lvl-now">ระดับ ${r.lvl}<small>ยิ่งเลขมาก = ทวงหนักขึ้น</small></div>
+        <button class="step" onclick="changeLvl(1)">+</button>
+      </div>
+      <div class="hint">ระดับกำหนดลำดับการยกระดับการทวง ระบบจะใช้ระดับสูงสุดที่นักศึกษาเข้าเกณฑ์ ณ ตอนนั้น</div>
+    </div>
+
+    <!-- ===== สีระดับ ===== -->
+    <div class="field">
+      <label>สีประจำระดับ</label>
+      <div class="swatches">
+        ${COLORS.map(c=>`<div class="swatch ${r.color===c.val?'on':''}" style="background:${c.val}" onclick="setColor('${c.val}')"></div>`).join('')}
+      </div>
+    </div>
+
+    <div class="field">
+      <label>ชื่อกฎ <span class="req">*</span></label>
+      <div class="control"><input value="${r.name}" onchange="setField('name',this.value)"></div>
+    </div>
+
+    <div class="two">
+      <div class="field">
+        <label>รูปแบบเงื่อนไขเวลา <span class="req">*</span></label>
+        <div class="control"><select onchange="setTimeType(this.value)">
+          <option value="before" ${r.timeType==='before'?'selected':''}>ก่อนครบกำหนด</option>
+          <option value="range" ${r.timeType==='range'?'selected':''}>ช่วงเกินกำหนด</option>
+          <option value="over" ${r.timeType==='over'?'selected':''}>เกินกำหนดมากกว่า</option>
+        </select></div>
+      </div>
+      <div class="field">
+        <label>ประเภทหนี้</label>
+        <div class="control"><select onchange="setField('type',this.value)">
+          <option ${r.type==='ทุกประเภท'?'selected':''}>ทุกประเภท</option>
+          <option ${r.type==='เฉพาะค่าเทอม'?'selected':''}>เฉพาะค่าเทอม</option>
+          <option ${r.type==='เฉพาะค่าหอพัก'?'selected':''}>เฉพาะค่าหอพัก</option>
+          <option ${r.type==='เฉพาะค่าปรับ'?'selected':''}>เฉพาะค่าปรับ</option>
+        </select></div>
+      </div>
+    </div>
+
+    <div class="field">
+      <label>ค่าเงื่อนไขเวลา (วัน) <span class="req">*</span></label>
+      <div class="control">${timeControl(r)}</div>
+    </div>
+
+    <div class="two">
+      <div class="field">
+        <label>ยอดค้างขั้นต่ำ</label>
+        <div class="control"><input type="number" value="0"> บาทขึ้นไป</div>
+      </div>
+      <div class="field">
+        <label>ความถี่ในการทวงซ้ำ</label>
+        <div class="control"><select onchange="setField('freq',this.value)">
+          <option ${r.freq==='ครั้งเดียว'?'selected':''}>ครั้งเดียว</option>
+          <option ${r.freq==='ทุก 3 วัน'?'selected':''}>ทุก 3 วัน</option>
+          <option ${r.freq==='ทุก 7 วัน'?'selected':''}>ทุก 7 วัน</option>
+          <option ${r.freq==='ทุก 14 วัน'?'selected':''}>ทุก 14 วัน</option>
+        </select></div>
+      </div>
+    </div>
+
+    <div class="field">
+      <label>ช่องทางการแจ้งเตือน <span class="req">*</span></label>
+      <div class="ch-group">
+        ${['app','line','adv'].map(k=>`
+          <div class="ch">
+            <span class="lbl"><span class="ico ${chIcoClass(k)}">${chIcoText(k)}</span>${chLabel(k)}</span>
+            <div class="toggle ${r.ch[k]?'on':''}" onclick="toggleCh('${k}',this)"></div>
+          </div>`).join('')}
+      </div>
+    </div>
+
+    ${r.escalate?`
+    <div class="field">
+      <label>เมื่อเข้าเงื่อนไข</label>
+      <div class="control"><select><option>ส่งเข้าคิวติดตามแบบกำหนดเอง</option><option>แจ้งเตือนเจ้าหน้าที่อย่างเดียว</option></select></div>
+    </div>`:''}
+
+    <div class="field">
+      <label>ข้อความแจ้งเตือน (${r.msgTo}) <span class="req">*</span></label>
+      <div class="var-bar">
+        <button class="var-chip" onclick="insertVar('{ชื่อนักศึกษา}')">ชื่อนักศึกษา</button>
+        <button class="var-chip" onclick="insertVar('{รหัสนักศึกษา}')">รหัสนักศึกษา</button>
+        <button class="var-chip" onclick="insertVar('{ประเภทหนี้}')">ประเภทหนี้</button>
+        <button class="var-chip" onclick="insertVar('{จำนวนเงิน}')">จำนวนเงิน</button>
+        <button class="var-chip" onclick="insertVar('{วันครบกำหนด}')">วันครบกำหนด</button>
+        <button class="var-chip" onclick="insertVar('{จำนวนวันเกิน}')">จำนวนวันเกิน</button>
+      </div>
+      <textarea class="msg-input" id="msg-input" oninput="onMsgInput(this.value)" placeholder="พิมพ์ข้อความแจ้งเตือน... กดปุ่มตัวแปรด้านบนเพื่อแทรกค่าที่ระบบจะเติมให้อัตโนมัติ">${r.msg}</textarea>
+      <div class="msg-count"><span>คลิกตัวแปรเพื่อแทรกที่ตำแหน่งเคอร์เซอร์</span><span><b id="msg-len">${r.msg.length}</b> ตัวอักษร</span></div>
+      <div class="preview" id="msg-preview"></div>
+    </div>
+
+    <div class="detail-foot">
+      <button class="btn btn-danger" onclick="deleteRule()">ลบกฎ</button>
+      <div style="display:flex;gap:10px">
+        <button class="btn btn-ghost" onclick="showToast('รีเซ็ตเป็นค่าเดิม')">ยกเลิก</button>
+        <button class="btn btn-primary" onclick="showToast('บันทึกกฎ ระดับ ${r.lvl} แล้ว')">บันทึกกฎนี้</button>
+      </div>
+    </div>
+  `;
+  renderPreview();
+}
+
+/* ---- message editor ---- */
+const SAMPLE = {
+  '{ชื่อนักศึกษา}':'นายสมชาย ใจดี',
+  '{รหัสนักศึกษา}':'65123456',
+  '{ประเภทหนี้}':'ค่าเทอม 2/2568',
+  '{จำนวนเงิน}':'23,700',
+  '{วันครบกำหนด}':'15 พ.ย. 2569',
+  '{จำนวนวันเกิน}':'12'
+};
+function insertVar(v){
+  const ta = document.getElementById('msg-input');
+  if(!ta) return;
+  const s = ta.selectionStart ?? ta.value.length;
+  const e = ta.selectionEnd ?? ta.value.length;
+  ta.value = ta.value.slice(0,s) + v + ta.value.slice(e);
+  const pos = s + v.length;
+  ta.focus(); ta.setSelectionRange(pos,pos);
+  onMsgInput(ta.value);
+}
+function onMsgInput(v){
+  cur().msg = v;
+  const lenEl = document.getElementById('msg-len');
+  if(lenEl) lenEl.textContent = v.length;
+  renderPreview();
+}
+function renderPreview(){
+  const p = document.getElementById('msg-preview');
+  if(!p) return;
+  let txt = cur().msg || '';
+  let filled = txt.replace(/\{[^}]+\}/g, m => SAMPLE[m]!==undefined
+    ? `<span class="filled">${SAMPLE[m]}</span>`
+    : `<span class="filled">${m}</span>`);
+  p.innerHTML = `<span class="tag">ตัวอย่างเมื่อระบบเติมค่าจริง</span>${filled || '<span style="color:var(--muted)">— ยังไม่มีข้อความ —</span>'}`;
+}
+
+/* ---- actions ---- */
+function cur(){ return RULES.find(x=>x.id===selected); }
+function select(id){ selected=id; renderRows(); renderDetail(); }
+
+function setField(f,v){ cur()[f]=v; renderRows(); if(f==='name'||f==='type'){/*keep detail*/} }
+function setColor(v){ cur().color=v; renderRows(); renderDetail(); }
+function setTimeType(v){
+  const r=cur(); r.timeType=v;
+  if(v==='before'||v==='over'){ if(r.timeVal==null) r.timeVal=3; }
+  else { if(r.timeFrom==null){r.timeFrom=1;r.timeTo=15;} }
+  renderRows(); renderDetail();
+}
+function changeLvl(delta){
+  const r=cur(); r.lvl=Math.max(1, r.lvl+delta);
+  renderRows(); renderDetail(); showToast('ปรับระดับเป็น '+r.lvl);
+}
+function toggleRule(el){
+  const r=cur(); r.on=!r.on; el.classList.toggle('on');
+  renderRows();
+  el.closest('.enable-line').querySelector('.l').textContent = r.on?'เปิดใช้งานกฎนี้อยู่':'ปิดใช้งานกฎนี้อยู่';
+  showToast(r.on?'เปิดใช้งานกฎแล้ว':'ปิดใช้งานกฎแล้ว');
+}
+function toggleCh(k,el){ cur().ch[k]=!cur().ch[k]; el.classList.toggle('on'); }
+
+function addRule(){
+  const maxLvl = Math.max(0,...RULES.map(r=>r.lvl));
+  const r = {
+    id:nextId++, lvl:maxLvl+1, color:'#7C5FB8', on:false, count:0,
+    name:'กฎใหม่', timeType:'range', timeFrom:1, timeTo:7,
+    type:'ทุกประเภท', freq:'ครั้งเดียว', ch:{app:true,line:false,adv:false}, msgTo:'ถึงนักศึกษา',
+    msg:'เรียน {ชื่อนักศึกษา}\nท่านมียอดค้างชำระ {จำนวนเงิน} บาท กรุณาติดต่อชำระ'
+  };
+  RULES.push(r); selected=r.id;
+  renderRows(); renderDetail(); showToast('เพิ่มกฎระดับ '+r.lvl+' แล้ว — กรอกรายละเอียดทางขวา');
+}
+function deleteRule(){
+  RULES = RULES.filter(x=>x.id!==selected);
+  selected = RULES.length? RULES[0].id : null;
+  renderRows(); renderDetail(); showToast('ลบกฎแล้ว');
+}
+
+let toastTimer;
+function showToast(msg){
+  const t=document.getElementById('toast');
+  document.getElementById('toast-msg').textContent=msg;
+  t.classList.add('show'); clearTimeout(toastTimer);
+  toastTimer=setTimeout(()=>t.classList.remove('show'),2000);
+}
+document.querySelectorAll('.lang button').forEach(b=>b.onclick=()=>{document.querySelectorAll('.lang button').forEach(x=>x.classList.remove('on'));b.classList.add('on');});
+
+renderRows(); renderDetail();
+</script>
+</body>
+</html>
