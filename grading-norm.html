@@ -1,0 +1,462 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>การตัดเกรดแบบอิงกลุ่ม</title>
+<style>
+  :root{
+    --primary:#6B4E9E; --primary-dark:#563E80; --primary-light:#F3EFFA;
+    --accent:#F2994A; --accent-light:#FFF3E8;
+    --ink:#2C2540; --muted:#8A82A0; --line:#E8E3F2; --bg:#F6F4FB;
+    --white:#fff; --ok:#3FB27F; --warn:#E8A93A; --shadow:0 2px 12px rgba(107,78,158,.08);
+    --grade-A:#3FB27F;--grade-Bp:#6FBF73;--grade-B:#8DC26F;--grade-Cp:#F2C94C;
+    --grade-C:#F2994A;--grade-Dp:#EB8055;--grade-D:#E06B4A;--grade-F:#D64545;
+    --border-hl:#F2C94C33;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:"Segoe UI","Sarabun",system-ui,sans-serif;background:var(--bg);color:var(--ink);font-size:14px;line-height:1.5}
+  .app{max-width:1480px;margin:0 auto;padding:20px}
+  .topbar{display:flex;align-items:center;gap:12px;margin-bottom:18px}
+  .logo{width:38px;height:38px;border-radius:10px;background:var(--primary);color:#fff;display:grid;place-items:center;font-weight:700}
+  .topbar h1{font-size:18px;font-weight:700}
+  .topbar .sub{color:var(--muted);font-size:12px}
+  .topbar .spacer{flex:1}
+
+  .grid{display:grid;grid-template-columns:250px 1fr 1.35fr;gap:16px;align-items:start}
+  .col{display:flex;flex-direction:column;gap:16px}
+  .card{background:var(--white);border:1px solid var(--line);border-radius:14px;box-shadow:var(--shadow)}
+  .card-h{display:flex;align-items:center;justify-content:space-between;padding:14px 18px;border-bottom:1px solid var(--line)}
+  .card-h h2{font-size:15px;font-weight:700}
+  .card-b{padding:16px 18px}
+
+  .btn{border:none;border-radius:9px;padding:8px 14px;font-size:13px;font-weight:600;cursor:pointer;font-family:inherit}
+  .btn-primary{background:var(--primary);color:#fff}.btn-primary:hover{background:var(--primary-dark)}
+  .btn-ghost{background:var(--primary-light);color:var(--primary)}.btn-ghost:hover{background:#E9E1F7}
+  .btn-sm{padding:6px 12px;font-size:12px}
+
+  input{font-family:inherit;font-size:13px;border:1px solid var(--line);border-radius:8px;padding:7px 9px;color:var(--ink);width:100%;background:#fff}
+  input:focus{outline:2px solid var(--primary-light);border-color:var(--primary)}
+
+  /* scope toggle */
+  .toggle{display:flex;background:var(--bg);border-radius:10px;padding:4px;gap:4px;margin:12px}
+  .toggle button{flex:1;border:none;background:transparent;padding:8px;border-radius:7px;font-size:12px;font-weight:600;cursor:pointer;color:var(--muted);font-family:inherit}
+  .toggle button.on{background:#fff;color:var(--primary);box-shadow:var(--shadow)}
+
+  .glist{display:flex;flex-direction:column;gap:8px;padding:0 12px 12px}
+  .gitem{border:1px solid var(--line);border-radius:11px;padding:12px 14px;cursor:pointer;transition:.15s}
+  .gitem:hover{border-color:var(--primary);background:var(--primary-light)}
+  .gitem.on{border-color:var(--primary);background:var(--primary-light);box-shadow:inset 3px 0 0 var(--primary)}
+  .gitem .gname{font-weight:700;font-size:13px}
+  .gitem .gmeta{font-size:11px;color:var(--muted);margin-top:3px}
+  .gitem.on .gname{color:var(--primary)}
+
+  /* stats strip */
+  .stats{display:grid;grid-template-columns:repeat(5,1fr);gap:8px;margin-bottom:16px}
+  .stat{background:var(--primary-light);border-radius:10px;padding:9px 10px;text-align:center}
+  .stat .n{font-size:17px;font-weight:800;color:var(--primary);font-variant-numeric:tabular-nums}
+  .stat .l{font-size:10px;color:var(--muted)}
+  .stat.key{background:var(--primary);}
+  .stat.key .n{color:#fff}.stat.key .l{color:#EAD9FF}
+
+  /* method summary banner */
+  .msum{display:flex;align-items:center;gap:12px;background:linear-gradient(90deg,var(--primary-light),#fff);border:1px solid var(--line);border-left:4px solid var(--primary);border-radius:12px;padding:12px 16px;margin-bottom:16px}
+  .msum .mtag{background:var(--primary);color:#fff;font-weight:700;font-size:12px;padding:4px 10px;border-radius:7px;white-space:nowrap}
+  .msum .mtxt{font-size:12px;color:var(--ink);line-height:1.6}
+  .msum .mtxt b{color:var(--primary)}
+  .msum .mformula{font-family:ui-monospace,monospace;font-size:11px;color:var(--muted);background:#fff;padding:2px 7px;border-radius:5px;border:1px solid var(--line);white-space:nowrap}
+
+  /* method tabs */
+  .tabs{display:flex;gap:6px;margin-bottom:14px}
+  .tabs button{flex:1;border:1px solid var(--line);background:#fff;padding:8px 6px;border-radius:9px;font-size:12px;font-weight:600;cursor:pointer;color:var(--muted);font-family:inherit}
+  .tabs button.on{background:var(--primary);color:#fff;border-color:var(--primary)}
+  .method-hint{font-size:11px;color:var(--muted);background:var(--bg);padding:8px 10px;border-radius:8px;margin-bottom:14px}
+
+  table{width:100%;border-collapse:collapse}
+  th{text-align:left;font-size:11px;text-transform:uppercase;letter-spacing:.03em;color:var(--muted);padding:7px 8px;border-bottom:2px solid var(--line)}
+  td{padding:7px 8px;border-bottom:1px solid var(--line);font-size:13px;vertical-align:middle}
+  tr:last-child td{border-bottom:none}
+  .num{text-align:right;font-variant-numeric:tabular-nums}
+  .cutin{width:78px;padding:5px 7px;text-align:right}
+
+  .badge{display:inline-flex;align-items:center;justify-content:center;min-width:32px;padding:3px 7px;border-radius:6px;font-weight:700;color:#fff;font-size:12px}
+  .g-A{background:var(--grade-A)}.g-Bp{background:var(--grade-Bp)}.g-B{background:var(--grade-B)}
+  .g-Cp{background:var(--grade-Cp)}.g-C{background:var(--grade-C)}.g-Dp{background:var(--grade-Dp)}
+  .g-D{background:var(--grade-D)}.g-F{background:var(--grade-F)}
+
+  .bar-track{height:12px;background:var(--primary-light);border-radius:6px;overflow:hidden}
+  .bar-fill{height:100%;border-radius:6px}
+
+  /* histogram */
+  .hist-wrap{position:relative;padding:6px 4px 0}
+  .hist{display:flex;align-items:flex-end;gap:2px;height:190px;padding:0 4px;border-bottom:2px solid var(--ink);position:relative}
+  .hbar{flex:1;background:var(--primary);border-radius:3px 3px 0 0;min-height:2px;transition:height .3s;opacity:.85;position:relative}
+  .cutline{position:absolute;top:0;bottom:0;width:2px;background:var(--ink);z-index:3}
+  .cutline .lbl{position:absolute;top:-4px;left:3px;font-size:10px;font-weight:700;padding:1px 5px;border-radius:5px;color:#fff;white-space:nowrap}
+  .hist-x{display:flex;justify-content:space-between;padding:6px 4px 0;font-size:10px;color:var(--muted);font-variant-numeric:tabular-nums}
+
+  .scroll{max-height:330px;overflow:auto}
+  .empty{padding:44px 20px;text-align:center;color:var(--muted)}
+  .empty .big{font-size:15px;font-weight:600;color:var(--ink);margin-bottom:4px}
+
+  .score-view{display:inline-flex;align-items:center;gap:6px;justify-content:flex-end}
+  .score-view .edit{opacity:0;border:none;background:var(--primary-light);color:var(--primary);border-radius:6px;width:24px;height:24px;cursor:pointer;font-size:12px}
+  tr:hover .score-view .edit{opacity:1}
+  .score-edit{display:inline-flex;gap:5px;align-items:center;justify-content:flex-end}
+  .score-edit input{width:70px;padding:5px 7px;text-align:right}
+  .icon-btn{border:none;border-radius:6px;width:28px;height:28px;cursor:pointer;font-weight:700}
+  .icon-ok{background:var(--ok);color:#fff}.icon-cancel{background:var(--accent-light);color:var(--accent)}
+  .adj{font-size:10px;color:var(--accent);margin-left:2px;cursor:help}
+
+  tr.borderline{background:var(--border-hl)}
+  tr.borderline td:first-child{box-shadow:inset 3px 0 0 var(--warn)}
+  .bl-tag{display:inline-block;margin-left:5px;font-size:9px;background:var(--warn);color:#fff;padding:1px 5px;border-radius:4px;font-weight:700;cursor:help}
+  .bl-note{display:flex;align-items:center;gap:6px;font-size:11px;color:#B4802A;background:#FBF3DF;padding:7px 10px;border-radius:8px;margin:0 18px 12px}
+
+  .hint{font-size:11px;color:var(--muted)}
+  .tsub{font-size:11px;color:var(--muted);font-weight:400;margin-left:6px}
+  @media(max-width:1150px){.grid{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<div class="app">
+  <div class="topbar">
+    <div class="logo">CES</div>
+    <div>
+      <h1>การตัดเกรดแบบอิงกลุ่ม</h1>
+      <div class="sub">Educational Services Center · Walailak University</div>
+    </div>
+    <div class="spacer"></div>
+    <button class="btn btn-ghost btn-sm" onclick="recalc(true)">↻ คำนวณจุดตัดใหม่</button>
+  </div>
+
+  <div class="grid">
+    <!-- LEFT -->
+    <div class="col">
+      <div class="card">
+        <div class="card-h"><h2>ขอบเขตการคิด</h2></div>
+        <div class="toggle">
+          <button id="scopeSep" class="on" onclick="setScope('sep')">แยกทีละกลุ่ม</button>
+          <button id="scopeAll" onclick="setScope('all')">รวมทุกกลุ่ม</button>
+        </div>
+        <div class="glist" id="glist"></div>
+      </div>
+    </div>
+
+    <!-- CENTER -->
+    <div class="col">
+      <div class="card">
+        <div class="card-h"><h2>สถิติ & วิธีคำนวณ</h2><span id="scopeLbl" class="hint"></span></div>
+        <div class="card-b">
+          <div class="msum" id="msum"></div>
+          <div class="stats" id="stats"></div>
+          <div class="tabs">
+            <button id="mT" class="on" onclick="setMethod('T')">T-score</button>
+            <button id="mSD" onclick="setMethod('SD')">Mean ± SD</button>
+            <button id="mPCT" onclick="setMethod('PCT')">สัดส่วน %</button>
+          </div>
+          <div class="method-hint" id="methodHint"></div>
+          <table>
+            <thead><tr>
+              <th>เกรด</th><th id="cutColHead">จุดตัด</th>
+              <th>ช่วงคะแนนดิบ</th><th class="num">จำนวน</th><th class="num">%</th>
+            </tr></thead>
+            <tbody id="summaryBody"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- RIGHT -->
+    <div class="col">
+      <div class="card">
+        <div class="card-h"><h2>การกระจายคะแนน<span class="tsub">พร้อมเส้นจุดตัดเกรด</span></h2></div>
+        <div class="card-b">
+          <div class="hist-wrap">
+            <div class="hist" id="hist"></div>
+            <div class="hist-x" id="histX"></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-h"><h2>ผลเกรดรายบุคคล</h2><span id="stuCount" class="hint"></span></div>
+        <div id="blNote"></div>
+        <div class="card-b" style="padding:0">
+          <div class="scroll">
+            <table>
+              <thead><tr>
+                <th>รหัส</th><th>ชื่อ–นามสกุล</th><th class="num">คะแนน</th>
+                <th class="num">T</th><th class="num">เกรด</th>
+              </tr></thead>
+              <tbody id="studentBody"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+const GC={A:'g-A','B+':'g-Bp',B:'g-B','C+':'g-Cp',C:'g-C','D+':'g-Dp',D:'g-D',F:'g-F'};
+const GCOL={A:'#3FB27F','B+':'#6FBF73',B:'#8DC26F','C+':'#F2C94C',C:'#F2994A','D+':'#EB8055',D:'#E06B4A',F:'#D64545'};
+const GRADES=['A','B+','B','C+','C','D+','D','F']; // high→low
+const BORDERLINE=1.0; // คะแนนดิบต่างกันน้อยกว่านี้แต่คนละเกรด = คร่อมเส้น
+
+/* default cut config per method (จุดตัด "ขั้นต่ำ" ของแต่ละเกรด ยกเว้น F) */
+let method='T';
+const cuts={
+  T:  {A:65,'B+':60,B:55,'C+':50,C:45,'D+':40,D:35},           // T-score ขั้นต่ำ
+  SD: {A:1.5,'B+':1.0,B:0.5,'C+':0,C:-0.5,'D+':-1.0,D:-1.5},   // ตัวคูณ SD
+  PCT:{A:10,'B+':15,B:20,'C+':20,C:15,'D+':10,D:7}             // % ต่อเกรด (F = ที่เหลือ)
+};
+
+const GROUPS=[
+  {id:'MAG67-361-01',name:'MAG67-361 sec.01',meta:'พฤ. เช้า'},
+  {id:'MAG67-361-02',name:'MAG67-361 sec.02',meta:'พฤ. บ่าย'},
+  {id:'MAG67-215-01',name:'MAG67-215 sec.01',meta:'จ. เช้า'}
+];
+let scope='sep';        // 'sep' | 'all'
+let currentGroup=null;
+
+const FIRST=['ธนกร','ปาริชาต','อนุชา','กมลชนก','ศิริพร','ณัฐวุฒิ','พิมพ์ชนก','วีรภัทร','อรอุมา','ธีรเดช','สุนิสา','จิรายุ','ณิชา','ภาณุพงศ์','ชลธิชา','กฤตนัย','เมธาวี','ปรเมศวร์','ธัญชนก','พงศธร'];
+const LAST=['แซ่ลิ้ม','ทองดี','บุญมี','ศรีสุข','วัฒนา','แก้วมณี','พัฒนกุล','เกษมสุข','รัตนชัย','อินทร์แก้ว'];
+function seed(gid){
+  let s=0;for(const c of gid)s+=c.charCodeAt(0);
+  const rnd=()=>{s=(s*9301+49297)%233280;return s/233280;};
+  const n=30+Math.floor(rnd()*10);const arr=[];
+  for(let i=0;i<n;i++){
+    const sc=Math.max(28,Math.min(98,Math.round((55+rnd()*40+(rnd()<.15?-20:0))*100)/100));
+    arr.push({id:'66'+String(1300+Math.floor(rnd()*400)).padStart(4,'0')+String(i).padStart(2,'0'),
+      first:FIRST[Math.floor(rnd()*FIRST.length)],last:LAST[Math.floor(rnd()*LAST.length)],
+      score:sc,orig:sc,edited:false,gid});
+  }
+  return arr;
+}
+const DATA={};GROUPS.forEach(g=>DATA[g.id]=seed(g.id));
+
+/* ---- pool of students in current scope ---- */
+function pool(){
+  if(scope==='all')return GROUPS.flatMap(g=>DATA[g.id]);
+  return currentGroup?DATA[currentGroup]:[];
+}
+function stats(arr){
+  const n=arr.length;if(!n)return{n:0,mean:0,sd:0,max:0,min:0};
+  const scores=arr.map(s=>s.score);
+  const mean=scores.reduce((a,b)=>a+b,0)/n;
+  const sd=Math.sqrt(scores.reduce((a,b)=>a+(b-mean)**2,0)/n);
+  return{n,mean,sd,max:Math.max(...scores),min:Math.min(...scores)};
+}
+
+/* ---- compute raw-score cut for each grade, given method ---- */
+function rawCuts(st,arr){
+  const c=cuts[method];const out={}; // out[grade] = คะแนนดิบขั้นต่ำ
+  if(method==='T'){
+    // T = 50 + 10*(x-mean)/sd  →  x = mean + sd*(T-50)/10
+    GRADES.slice(0,7).forEach(g=>{out[g]=st.sd?st.mean+st.sd*(c[g]-50)/10:st.mean;});
+  }else if(method==='SD'){
+    GRADES.slice(0,7).forEach(g=>{out[g]=st.mean+st.sd*c[g];});
+  }else{ // PCT: หาคะแนนดิบที่แบ่งตามเปอร์เซ็นไทล์สะสม
+    const sorted=[...arr.map(s=>s.score)].sort((a,b)=>b-a);
+    let acc=0;
+    GRADES.slice(0,7).forEach(g=>{
+      acc+=c[g];
+      const idx=Math.min(sorted.length-1,Math.ceil(acc/100*sorted.length)-1);
+      out[g]=sorted[Math.max(0,idx)];
+    });
+  }
+  return out;
+}
+function gradeOf(score,rc){
+  for(const g of GRADES.slice(0,7)){if(score>=rc[g])return g;}
+  return 'F';
+}
+function tScore(score,st){return st.sd?50+10*(score-st.mean)/st.sd:50;}
+
+/* ---- render ---- */
+function setScope(s){
+  scope=s;document.getElementById('scopeSep').classList.toggle('on',s==='sep');
+  document.getElementById('scopeAll').classList.toggle('on',s==='all');
+  editingId=null;renderGroupList();recalc(true);
+}
+function setMethod(m){
+  method=m;['T','SD','PCT'].forEach(x=>document.getElementById('m'+x).classList.toggle('on',x===m));
+  recalc(true);
+}
+function renderGroupList(){
+  const wrap=document.getElementById('glist');wrap.innerHTML='';
+  if(scope==='all'){
+    const st=stats(pool());
+    const div=document.createElement('div');div.className='gitem on';
+    div.innerHTML=`<div class="gname">ทุกกลุ่มรวมกัน</div><div class="gmeta">${GROUPS.length} กลุ่ม · ${st.n} คน</div>`;
+    wrap.appendChild(div);return;
+  }
+  GROUPS.forEach(g=>{
+    const on=g.id===currentGroup;
+    const div=document.createElement('div');div.className='gitem'+(on?' on':'');
+    div.onclick=()=>{currentGroup=g.id;editingId=null;renderGroupList();recalc(true);};
+    div.innerHTML=`<div class="gname">${g.name}</div><div class="gmeta">${g.meta} · ${DATA[g.id].length} คน</div>`;
+    wrap.appendChild(div);
+  });
+}
+
+const HINTS={
+  T:'T-score = 50 + 10×(คะแนน−ค่าเฉลี่ย)÷SD · จุดตัดกำหนดบนสเกล T (ค่ากลาง=50)',
+  SD:'ตัดจากระยะห่างจากค่าเฉลี่ยเป็นเท่าของ SD เช่น A = คะแนน ≥ ค่าเฉลี่ย + 1.5×SD',
+  PCT:'กำหนดสัดส่วนผู้ได้แต่ละเกรดเป็น % (F = ส่วนที่เหลือ) · รวมไม่ควรเกิน 100'
+};
+const CUTHEAD={T:'จุดตัด (T)',SD:'× SD',PCT:'สัดส่วน %'};
+
+const METHOD_NAME={T:'อิงกลุ่ม · T-score',SD:'อิงกลุ่ม · Mean ± SD',PCT:'อิงกลุ่ม · สัดส่วนร้อยละ'};
+function renderMethodSummary(st,rc,counts,total){
+  const scopeStr = scope==='all'
+    ? `คิดรวมทุกกลุ่ม (${GROUPS.length} กลุ่ม, ${st.n} คน)`
+    : `แยกทีละกลุ่ม — ${currentGroup?GROUPS.find(g=>g.id===currentGroup).name:''} (${st.n} คน)`;
+  let formula='', criteria='';
+  if(method==='T'){
+    formula=`T = 50 + 10 × (คะแนน − ${st.mean.toFixed(2)}) ÷ ${st.sd.toFixed(2)}`;
+    criteria=`A เมื่อ T ≥ ${cuts.T.A} (คะแนนดิบ ≥ ${rc.A.toFixed(1)})`;
+  }else if(method==='SD'){
+    formula=`เกณฑ์ = ค่าเฉลี่ย(${st.mean.toFixed(2)}) + k × SD(${st.sd.toFixed(2)})`;
+    criteria=`A เมื่อคะแนน ≥ ค่าเฉลี่ย + ${cuts.SD.A}×SD (= ${rc.A.toFixed(1)})`;
+  }else{
+    const sum=GRADES.slice(0,7).reduce((a,g)=>a+cuts.PCT[g],0);
+    formula=`แบ่งตามลำดับคะแนน · A=${cuts.PCT.A}% … (รวม ${sum}%, F=${(100-sum>0?(100-sum):0)}%)`;
+    criteria=`A = ${counts.A} คนแรก (คะแนนดิบ ≥ ${rc.A.toFixed(1)})`;
+  }
+  document.getElementById('msum').innerHTML=`
+    <span class="mtag">${METHOD_NAME[method]}</span>
+    <div class="mtxt">
+      วิธีที่ใช้: <b>${METHOD_NAME[method].split('· ')[1]}</b> · ${scopeStr}<br>
+      <span class="mformula">${formula}</span> &nbsp; ${criteria}
+    </div>`;
+}
+
+function recalc(){
+  const arr=pool();const st=stats(arr);
+  document.getElementById('scopeLbl').textContent = scope==='all'?'รวมทุกกลุ่ม':(currentGroup?GROUPS.find(g=>g.id===currentGroup).name:'');
+  document.getElementById('methodHint').textContent=HINTS[method];
+  document.getElementById('cutColHead').textContent=CUTHEAD[method];
+
+  if(!arr.length){
+    document.getElementById('stats').innerHTML='';document.getElementById('msum').innerHTML='';
+    document.getElementById('summaryBody').innerHTML='<tr><td colspan="5"><div class="empty"><div class="big">เลือกกลุ่มเรียน</div>เลือกกลุ่มจากการ์ดซ้าย</div></td></tr>';
+    document.getElementById('studentBody').innerHTML='<tr><td colspan="5"><div class="empty">—</div></td></tr>';
+    document.getElementById('hist').innerHTML='';document.getElementById('histX').innerHTML='';
+    document.getElementById('stuCount').textContent='';document.getElementById('blNote').innerHTML='';
+    return;
+  }
+
+  // stats strip (SD เน้นด้วยการ์ดสีเข้ม)
+  document.getElementById('stats').innerHTML=
+    [['N',st.n,''],['ค่าเฉลี่ย',st.mean.toFixed(2),''],['ส่วนเบี่ยงเบน (SD)',st.sd.toFixed(2),'key'],['สูงสุด',st.max.toFixed(0),''],['ต่ำสุด',st.min.toFixed(0),'']]
+    .map(([l,n,k])=>`<div class="stat ${k}"><div class="n">${n}</div><div class="l">${l}</div></div>`).join('');
+
+  const rc=rawCuts(st,arr);
+  // assign grades
+  arr.forEach(s=>{s.grade=gradeOf(s.score,rc);s.t=tScore(s.score,st);});
+  const counts={};GRADES.forEach(g=>counts[g]=0);arr.forEach(s=>counts[s.grade]++);
+  const total=arr.length;
+
+  // method summary banner
+  renderMethodSummary(st,rc,counts,total);
+
+  // summary table with editable cut inputs
+  const sb=document.getElementById('summaryBody');sb.innerHTML='';
+  GRADES.forEach((g,i)=>{
+    const pct=counts[g]/total*100;
+    const hi=(g==='F')?0:rawCuts(st,arr)[g];
+    const upper=i===0?st.max:rawCuts(st,arr)[GRADES[i-1]];
+    const rangeStr = g==='F'
+      ? `< ${rc['D'].toFixed(1)}`
+      : (i===0?`≥ ${hi.toFixed(1)}`:`${hi.toFixed(1)} – ${(upper-0.01).toFixed(1)}`);
+    const cutCell = g==='F'
+      ? '<span class="hint">ส่วนที่เหลือ</span>'
+      : `<input class="cutin" type="number" step="${method==='SD'?0.1:1}" value="${cuts[method][g]}" data-g="${g}" oninput="onCut(this)">`;
+    sb.innerHTML+=`<tr>
+      <td><span class="badge ${GC[g]}">${g}</span></td>
+      <td>${cutCell}</td>
+      <td class="hint">${rangeStr}</td>
+      <td class="num">${counts[g]}</td>
+      <td class="num"><div style="display:flex;align-items:center;gap:7px;justify-content:flex-end">
+        <div class="bar-track" style="width:44px"><div class="bar-fill ${GC[g]}" style="width:${pct}%"></div></div>
+        <span style="min-width:40px">${pct.toFixed(1)}%</span></div></td></tr>`;
+  });
+
+  renderHist(arr,st,rc);
+  renderStudents(arr,st,rc);
+}
+
+function onCut(inp){cuts[method][inp.dataset.g]=parseFloat(inp.value)||0;recalc();}
+
+function renderHist(arr,st,rc){
+  const hist=document.getElementById('hist');const hx=document.getElementById('histX');
+  const lo=Math.floor(st.min/5)*5, hi=Math.ceil(st.max/5)*5;
+  const bins=Math.max(1,Math.round((hi-lo)/5));
+  const counts=new Array(bins).fill(0);
+  arr.forEach(s=>{let b=Math.floor((s.score-lo)/5);b=Math.max(0,Math.min(bins-1,b));counts[b]++;});
+  const maxc=Math.max(...counts,1);
+  hist.innerHTML=counts.map(c=>`<div class="hbar" style="height:${c/maxc*100}%"></div>`).join('');
+  // cut lines overlay
+  GRADES.slice(0,7).forEach(g=>{
+    const x=rc[g];if(x<lo||x>hi)return;
+    const pos=(x-lo)/(hi-lo)*100;
+    const line=document.createElement('div');line.className='cutline';line.style.left=pos+'%';
+    line.innerHTML=`<span class="lbl" style="background:${GCOL[g]}">${g}</span>`;
+    hist.appendChild(line);
+  });
+  hx.innerHTML=`<span>${lo}</span><span>${Math.round((lo+hi)/2)}</span><span>${hi}</span>`;
+}
+
+/* borderline: คะแนนต่างกัน < BORDERLINE แต่ได้คนละเกรด */
+function markBorderline(arr,rc){
+  arr.forEach(s=>s.bl=false);
+  GRADES.slice(0,7).forEach(g=>{
+    const cut=rc[g];
+    arr.forEach(s=>{if(s.score>=cut-BORDERLINE && s.score<cut+BORDERLINE)s.bl=true;});
+  });
+}
+
+let editingId=null;
+function renderStudents(arr,st,rc){
+  markBorderline(arr,rc);
+  const blCount=arr.filter(s=>s.bl).length;
+  document.getElementById('stuCount').textContent=`${arr.length} คน`;
+  document.getElementById('blNote').innerHTML = blCount
+    ? `<div class="bl-note">⚠ มี ${blCount} คนที่คะแนนคร่อมเส้นตัดเกรด (ต่างกันน้อยกว่า ${BORDERLINE} คะแนนแต่ได้คนละเกรด) — แถวที่ไฮไลต์สีเหลือง</div>`
+    : '';
+  const body=document.getElementById('studentBody');body.innerHTML='';
+  [...arr].sort((a,b)=>b.score-a.score).forEach(s=>{
+    const scoreCell = editingId===s.id
+      ? `<div class="score-edit">
+           <input type="number" step="0.01" min="0" max="100" id="e-${s.id}" value="${s.score.toFixed(2)}">
+           <button class="icon-btn icon-ok" onclick="saveScore('${s.id}')">✓</button>
+           <button class="icon-btn icon-cancel" onclick="cancelScore()">×</button></div>`
+      : `<div class="score-view"><span>${s.score.toFixed(2)}${s.edited?`<span class="adj" title="เดิม ${s.orig.toFixed(2)}">✎</span>`:''}</span>
+           <button class="edit" title="แก้คะแนน" onclick="startEdit('${s.id}')">✎</button></div>`;
+    const gname = scope==='all'?` <span class="hint">(${s.gid.slice(-2)})</span>`:'';
+    body.innerHTML+=`<tr class="${s.bl?'borderline':''}">
+      <td>${s.id}</td>
+      <td>${s.first} ${s.last}${gname}</td>
+      <td class="num">${scoreCell}</td>
+      <td class="num hint">${s.t.toFixed(1)}</td>
+      <td class="num"><span class="badge ${GC[s.grade]}">${s.grade}</span>${s.bl?'<span class="bl-tag" title="คะแนนคร่อมเส้นตัดเกรด">คร่อม</span>':''}</td>
+    </tr>`;
+  });
+  const inp=document.getElementById('e-'+editingId);
+  if(inp){inp.focus();inp.select();inp.onkeydown=e=>{if(e.key==='Enter')saveScore(editingId);if(e.key==='Escape')cancelScore();};}
+}
+function startEdit(id){editingId=id;recalc();}
+function cancelScore(){editingId=null;recalc();}
+function saveScore(id){
+  const el=document.getElementById('e-'+id);const v=parseFloat(el.value);
+  const s=pool().find(x=>x.id===id);
+  if(s&&!isNaN(v)){s.score=Math.max(0,Math.min(100,Math.round(v*100)/100));s.edited=(s.score!==s.orig);}
+  editingId=null;recalc(); // แก้คะแนน → mean/SD/จุดตัด/histogram เปลี่ยนสด
+}
+
+window.onload=()=>{currentGroup=GROUPS[0].id;renderGroupList();recalc(true);};
+</script>
+</body>
+</html>
