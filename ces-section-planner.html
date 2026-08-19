@@ -1,0 +1,551 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CES · กำหนดผู้เรียน</title>
+<style>
+  :root{
+    --purple:#6B4E9E; --purple-d:#5a3f88; --purple-soft:#f1ecf8; --purple-line:#e4dcf1;
+    --orange:#e8842a; --orange-soft:#fdf1e5;
+    --ink:#2b2f3a; --ink-soft:#7a8091; --ink-faint:#9aa0ae;
+    --line:#e6e8ef; --line-soft:#f0f2f6; --bg:#f7f8fb; --card:#fff;
+    --ok:#1f9d63; --ok-soft:#e7f5ee;
+    --warn:#c9821a; --warn-soft:#fbf1df;
+    --over:#d1483c; --over-soft:#fbe9e7;
+    --r:14px; --r-sm:9px;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{
+    font-family:"Segoe UI","Noto Sans Thai",system-ui,sans-serif;
+    background:var(--bg);color:var(--ink);font-size:14px;line-height:1.5;
+    -webkit-font-smoothing:antialiased;padding:22px;
+  }
+  .frame{
+    max-width:1480px;margin:0 auto;background:var(--card);
+    border:1px solid var(--line);border-radius:20px;overflow:hidden;
+    box-shadow:0 8px 40px rgba(40,30,70,.07);
+  }
+  /* header */
+  .head{display:flex;align-items:center;gap:14px;padding:16px 26px;border-bottom:1px solid var(--line-soft)}
+  .logo{display:flex;align-items:center;gap:2px;font-weight:800;font-size:20px;color:var(--purple);letter-spacing:-.5px}
+  .logo .o{background:var(--purple);color:#fff;width:22px;height:22px;border-radius:50%;display:grid;place-items:center;font-size:13px;margin-left:1px}
+  .logo small{display:block;font-size:7px;letter-spacing:.5px;color:var(--ink-faint);font-weight:600}
+  .crumb{color:var(--ink-soft)}
+  .crumb b{color:var(--ink);font-weight:700}
+  .lang{margin-left:auto;display:flex;gap:2px}
+  .lang span{padding:5px 10px;border-radius:7px;font-size:12px;font-weight:700;color:var(--ink-faint);cursor:pointer}
+  .lang span.on{background:var(--purple);color:#fff}
+  .ava{width:34px;height:34px;border-radius:50%;background:linear-gradient(135deg,#c9a8f0,#6B4E9E);margin-left:6px}
+  .back{padding:8px 26px 0;color:var(--orange);font-size:13px;font-weight:600;cursor:pointer}
+  .back:hover{text-decoration:underline}
+
+  .body{display:grid;grid-template-columns:230px 1fr 290px;gap:0;padding:14px 26px 26px}
+
+  /* sidebar filter */
+  .filter{border-right:1px solid var(--line-soft);padding-right:22px}
+  .filter h3{font-size:13px;font-weight:800;margin-bottom:12px}
+  .fgroup{margin-bottom:20px}
+  .fgroup .flabel{font-size:12px;font-weight:800;color:var(--ink);margin-bottom:8px}
+  .chk{display:flex;align-items:center;gap:9px;padding:5px 4px;font-size:13px;color:var(--ink-soft);cursor:pointer;border-radius:6px}
+  .chk:hover{background:var(--purple-soft);color:var(--ink)}
+  .chk input{accent-color:var(--purple);width:15px;height:15px;cursor:pointer}
+  .fclear{font-size:12px;color:var(--purple);cursor:pointer;font-weight:600;margin-top:4px}
+  .fclear:hover{text-decoration:underline}
+  .range-row{display:flex;align-items:center;gap:6px;margin-top:8px}
+  .rnum{font:inherit;width:100%;padding:6px 8px;border:1px solid var(--line);border-radius:7px;font-size:12px}
+  .rnum:focus{outline:2px solid var(--purple);outline-offset:1px}
+  .qchips{display:flex;flex-wrap:wrap;gap:5px;margin-top:8px}
+  .qchip{font-size:11.5px;font-weight:600;padding:4px 9px;border:1px solid var(--line);border-radius:99px;cursor:pointer;color:var(--ink-soft)}
+  .qchip:hover{border-color:var(--purple);color:var(--purple)}
+  .qchip.on{background:var(--purple);color:#fff;border-color:var(--purple)}
+
+  /* main */
+  .main{padding-left:26px}
+  .main h2{font-size:17px;font-weight:800;margin-bottom:14px}
+
+  /* config strip */
+  .cfg{background:var(--purple-soft);border:1px solid var(--purple-line);border-radius:var(--r);padding:16px 18px;margin-bottom:18px}
+  .cfg-row{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:12px}
+  .cfg-row:last-child{margin-bottom:0}
+  .cfg-row .lbl{font-size:13px;color:var(--ink-soft)}
+  .cfg-row .lbl b{color:var(--purple-d);font-weight:800}
+  .grp-input{display:flex;align-items:center;gap:8px;margin-left:auto}
+  .grp-input span{font-size:12px;color:var(--ink-soft);font-weight:600}
+  .num{
+    font:inherit;font-weight:700;width:58px;padding:7px 9px;text-align:center;
+    border:1px solid var(--purple-line);border-radius:var(--r-sm);background:#fff;color:var(--ink);
+  }
+  .num:focus{outline:2px solid var(--purple);outline-offset:1px}
+  .dash{color:var(--ink-faint);font-weight:700}
+
+  /* live counter */
+  .counter{
+    display:grid;grid-template-columns:repeat(3,1fr);gap:12px;
+    background:#fff;border:1px solid var(--purple-line);border-radius:var(--r-sm);
+    padding:14px 16px;margin-top:14px;
+  }
+  .counter .c{text-align:center}
+  .counter .ck{font-size:11px;text-transform:uppercase;letter-spacing:.4px;color:var(--ink-faint);font-weight:700}
+  .counter .cv{font-size:24px;font-weight:800;letter-spacing:-.5px;margin-top:2px}
+  .counter .c.need .cv{color:var(--warn)}
+  .counter .c.need.done .cv{color:var(--ok)}
+  .counter .c.need.over .cv{color:var(--over)}
+  .cbar{grid-column:1/-1;height:7px;border-radius:99px;background:var(--line-soft);overflow:hidden;margin-top:2px}
+  .cbar>i{display:block;height:100%;background:var(--purple);transition:width .25s}
+  .cbar.done>i{background:var(--ok)} .cbar.over>i{background:var(--over)}
+  .banner{grid-column:1/-1;text-align:center;font-size:12.5px;font-weight:700;padding:7px;border-radius:var(--r-sm);margin-top:4px}
+  .banner.done{background:var(--ok-soft);color:var(--ok)}
+  .banner.over{background:var(--over-soft);color:var(--over)}
+  .banner.mixhint{background:var(--orange-soft);color:var(--orange)}
+
+  /* table */
+  .tbl-head{display:flex;align-items:center;margin:20px 0 10px}
+  .tbl-head h3{font-size:15px;font-weight:800}
+  .tbl-head .sel-count{font-size:12px;color:var(--ink-soft);margin-left:14px}
+  .search{margin-left:auto;position:relative}
+  .search input{font:inherit;padding:8px 12px 8px 32px;border:1px solid var(--line);border-radius:var(--r-sm);width:200px}
+  .search input:focus{outline:2px solid var(--purple);outline-offset:1px}
+  .search svg{position:absolute;left:10px;top:9px;color:var(--ink-faint)}
+
+  table{width:100%;border-collapse:collapse}
+  thead th{
+    text-align:left;font-size:12px;font-weight:800;color:var(--ink-soft);
+    padding:10px 12px;border-bottom:2px solid var(--line);
+  }
+  thead th.r{text-align:right} thead th.c{text-align:center}
+  tbody td{padding:12px;border-bottom:1px solid var(--line-soft);vertical-align:middle}
+  tbody tr:hover{background:var(--purple-soft)}
+  tbody tr.picked{background:var(--purple-soft)}
+  tbody tr.disabled{opacity:.4}
+  tbody tr.disabled:hover{background:transparent}
+  .rowchk{accent-color:var(--purple);width:16px;height:16px;cursor:pointer}
+  .prog-nm{font-weight:700;font-size:13.5px}
+  .prog-sub{font-size:11.5px;color:var(--ink-faint)}
+  .yr-badge{font-size:12px;color:var(--ink-soft)}
+  .avail{font-weight:700;text-align:right;color:var(--ink)}
+  .cell-input{text-align:right}
+  .row-num{
+    font:inherit;font-weight:700;width:74px;padding:7px 9px;text-align:center;
+    border:1px solid var(--line);border-radius:var(--r-sm);background:#fff;
+  }
+  .row-num:focus{outline:2px solid var(--purple);outline-offset:1px}
+  .row-num:disabled{background:var(--line-soft);cursor:not-allowed}
+  .row-num.err{border-color:var(--over);background:var(--over-soft)}
+  .row-warn{font-size:11px;color:var(--over);margin-top:3px;text-align:right}
+
+  /* school color tab on program name */
+  .prog-nm-wrap{display:flex;align-items:center;gap:9px}
+  .stab{width:4px;height:30px;border-radius:2px;flex:none}
+
+  /* summary panel (right) */
+  .summary{border-left:1px solid var(--line-soft);padding-left:22px;margin-left:26px}
+  .summary h3{font-size:14px;font-weight:800;margin-bottom:4px;display:flex;align-items:center;gap:8px}
+  .summary .sub{font-size:11.5px;color:var(--ink-soft);margin-bottom:14px}
+  .sum-empty{font-size:12.5px;color:var(--ink-faint);text-align:center;padding:30px 10px;line-height:1.7;border:1px dashed var(--line);border-radius:var(--r-sm)}
+  .gcard{border:1px solid var(--line);border-radius:var(--r-sm);padding:10px 12px;margin-bottom:8px;position:relative}
+  .gcard.batch{border-left:3px solid var(--orange)}
+  .gcard.single{border-left:3px solid var(--purple)}
+  .gcard .gh{display:flex;align-items:center;gap:7px;margin-bottom:5px}
+  .gcard .gtag{font-size:12px;font-weight:800;color:var(--purple-d)}
+  .gcard.batch .gtag{color:var(--orange)}
+  .gcard .gpeople{margin-left:auto;font-size:11px;font-weight:700;color:var(--ink-soft)}
+  .gcard .plist{display:flex;flex-wrap:wrap;gap:5px}
+  .gcard .pill{font-size:11px;background:var(--line-soft);border-radius:6px;padding:3px 7px;display:flex;align-items:center;gap:5px}
+  .gcard .pill .pd{width:6px;height:6px;border-radius:2px;flex:none}
+  .gcard .pill b{font-weight:800}
+  .gcard .note{font-size:10.5px;color:var(--ink-faint);margin-top:6px;font-style:italic}
+  .gcard .del{position:absolute;top:8px;right:9px;font-size:12px;color:var(--ink-faint);cursor:pointer;font-weight:700;padding:1px 5px;border-radius:4px}
+  .gcard .del:hover{background:var(--over-soft);color:var(--over)}
+  .sum-total{margin-top:12px;padding-top:12px;border-top:1px solid var(--line-soft);font-size:12px}
+  .sum-total .st-row{display:flex;justify-content:space-between;margin-bottom:4px;color:var(--ink-soft)}
+  .sum-total .st-row b{color:var(--ink);font-weight:800}
+
+  /* footer actions */
+  .foot{display:flex;align-items:center;gap:12px;margin-top:22px}
+  .foot .note{font-size:12px;color:var(--ink-soft)}
+  .btn{font:inherit;font-weight:700;padding:11px 26px;border-radius:var(--r-sm);border:none;cursor:pointer}
+  .btn-primary{background:var(--purple);color:#fff}
+  .btn-primary:hover{background:var(--purple-d)}
+  .btn-primary:disabled{background:var(--line);color:var(--ink-faint);cursor:not-allowed}
+  .btn-ghost{background:#fff;color:var(--purple);border:1px solid var(--purple-line)}
+  .btn-ghost:hover{background:var(--purple-soft)}
+
+  /* saved groups progress */
+  .saved{margin-left:auto;font-size:12px;color:var(--ink-soft);text-align:right}
+  .saved b{color:var(--purple-d);font-weight:800}
+</style>
+</head>
+<body>
+<div class="frame">
+  <div class="head">
+    <div class="logo">CES<span class="o">C</span></div>
+    <div class="crumb">&rsaquo; <b>กำหนดผู้เรียน</b></div>
+    <div class="lang"><span class="on">TH</span><span>EN</span></div>
+    <div class="ava"></div>
+  </div>
+  <div class="back">&larr; กลับไปยังหน้าช่วงเวลา</div>
+
+  <div class="body">
+    <!-- FILTER -->
+    <aside class="filter">
+      <h3>กรองข้อมูล</h3>
+      <div class="fgroup">
+        <div class="flabel">ชั้นปี</div>
+        <div id="yearFilter"></div>
+      </div>
+      <div class="fgroup">
+        <div class="flabel">สำนักวิชา</div>
+        <div id="schoolFilter"></div>
+      </div>
+      <div class="fgroup">
+        <div class="flabel">จำนวนที่มี</div>
+        <label class="chk"><input type="checkbox" id="onlyRemain"> เฉพาะที่ยังมีเหลือ</label>
+        <div id="countFilter"></div>
+        <div class="range-row">
+          <input class="rnum" id="minCount" type="number" min="0" placeholder="ตั้งแต่">
+          <span class="dash">–</span>
+          <input class="rnum" id="maxCount" type="number" min="0" placeholder="ถึง">
+        </div>
+      </div>
+      <div class="fclear" id="clearFilter">ล้างตัวกรอง</div>
+    </aside>
+
+    <!-- MAIN -->
+    <section class="main">
+      <h2>กำหนดผู้เรียน — ช่วงที่ 1 (จันทร์ 09:00–12:00)</h2>
+
+      <div class="cfg">
+        <div class="cfg-row">
+          <span class="lbl">ความจุช่วงเวลานี้ <b>350 คน</b> · กลุ่มละ <b>35 คน</b> · มีทั้งหมด <b>10 กลุ่ม</b></span>
+        </div>
+        <div class="cfg-row">
+          <span class="lbl">กำหนดกลุ่มที่ต้องการจัดพร้อมกัน</span>
+          <div class="grp-input">
+            <span>กลุ่มที่</span>
+            <input class="num" id="gFrom" type="number" min="1" max="10" value="1">
+            <span class="dash">–</span>
+            <input class="num" id="gTo" type="number" min="1" max="10" value="1">
+            <span id="gCountLbl">(1 กลุ่ม)</span>
+          </div>
+        </div>
+
+        <div class="counter" id="counter"></div>
+      </div>
+
+      <div class="tbl-head">
+        <h3>รายชื่อหลักสูตร</h3>
+        <span class="sel-count" id="selCount">เลือก 0 จาก 7 รายการ</span>
+        <div class="search">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg>
+          <input type="text" id="search" placeholder="ค้นหาหลักสูตร">
+        </div>
+      </div>
+
+      <table>
+        <thead>
+          <tr>
+            <th style="width:34px"></th>
+            <th>หลักสูตร</th>
+            <th style="width:80px" class="c">ชั้นปี</th>
+            <th style="width:110px" class="r">มีทั้งหมด</th>
+            <th style="width:140px" class="r">จำนวนที่ให้เรียน</th>
+          </tr>
+        </thead>
+        <tbody id="rows"></tbody>
+      </table>
+
+      <div class="foot">
+        <button class="btn btn-ghost" id="resetBtn">ล้างค่า</button>
+        <span class="note" id="footNote"></span>
+        <span class="saved" id="saved">จัดแล้ว <b>0</b> / 10 กลุ่ม · <b>0</b> / 350 คน</span>
+        <button class="btn btn-primary" id="okBtn" disabled>ตกลง</button>
+      </div>
+    </section>
+
+    <!-- SUMMARY -->
+    <aside class="summary">
+      <h3>กลุ่มที่จัดแล้ว</h3>
+      <div class="sub">รายการที่บันทึกในช่วงเวลานี้</div>
+      <div id="sumList"></div>
+      <div class="sum-total" id="sumTotal"></div>
+    </aside>
+  </div>
+</div>
+
+<script>
+const SCHOOLS={
+  informatics:{name:"สารสนเทศศาสตร์",color:"#6B4E9E"},
+  agri:{name:"เทคโนโลยีการเกษตรและอุตสาหกรรมอาหาร",color:"#1f9d63"},
+  medicine:{name:"แพทยศาสตร์",color:"#d1483c"},
+  management:{name:"การบัญชีและการเงิน",color:"#e8842a"},
+};
+// program × year with real remaining headcount
+let PROGRAMS=[
+  {id:"agri1", school:"agri", name:"เกษตรศาสตร์และนวัตกรรม", year:1, total:41},
+  {id:"med1",  school:"medicine", name:"การแพทย์แผนไทยประยุกต์", year:1, total:35},
+  {id:"biz1",  school:"management", name:"การจัดการธุรกิจและการเงินยุคดิจิทัล", year:1, total:109},
+  {id:"dga1",  school:"informatics", name:"ดิจิทัลคอนเทนต์และสื่อ", year:1, total:92},
+  {id:"med2",  school:"informatics", name:"เทคโนโลยีดิจิทัลทางการแพทย์", year:1, total:67},
+  {id:"imag2", school:"informatics", name:"IMAG", year:2, total:45},
+  {id:"acc2",  school:"management", name:"การบัญชี", year:2, total:48},
+];
+
+const SLOT={capacity:350, perGroup:35, groups:10};
+let assigned={};          // programId -> total assigned across saved groups (headcount consumed)
+let savedGroups=0;        // groups already finalized
+let records=[];           // [{from,to,count,items:[{id,n}],people}]
+let entry={};             // programId -> number typed for current batch
+let filters={years:new Set(), schools:new Set(), onlyRemain:false, min:null, max:null};
+let searchTerm="";
+
+const remainOf=id=>{const p=PROGRAMS.find(x=>x.id===id);return p.total-(assigned[id]||0);};
+const groupSpan=()=>{
+  let a=+document.getElementById('gFrom').value||1;
+  let b=+document.getElementById('gTo').value||a;
+  if(b<a)[a,b]=[b,a];
+  return {from:a,to:b,count:b-a+1};
+};
+const batchCapacity=()=>groupSpan().count*SLOT.perGroup;
+const batchFilled=()=>Object.values(entry).reduce((s,n)=>s+(+n||0),0);
+
+function renderFilters(){
+  const yEl=document.getElementById('yearFilter');
+  const years=[...new Set(PROGRAMS.map(p=>p.year))].sort();
+  yEl.innerHTML=years.map(y=>`<label class="chk"><input type="checkbox" data-y="${y}" ${filters.years.has(y)?'checked':''}> ชั้นปีที่ ${y}</label>`).join('');
+  yEl.querySelectorAll('input').forEach(i=>i.onchange=()=>{i.checked?filters.years.add(+i.dataset.y):filters.years.delete(+i.dataset.y);renderRows();});
+
+  const sEl=document.getElementById('schoolFilter');
+  const used=[...new Set(PROGRAMS.map(p=>p.school))];
+  sEl.innerHTML=used.map(s=>`<label class="chk"><input type="checkbox" data-s="${s}" ${filters.schools.has(s)?'checked':''}> ${SCHOOLS[s].name}</label>`).join('');
+  sEl.querySelectorAll('input').forEach(i=>i.onchange=()=>{i.checked?filters.schools.add(i.dataset.s):filters.schools.delete(i.dataset.s);renderRows();});
+
+  // quick chips: common thresholds + "fits what this batch still needs"
+  const need=batchCapacity()-batchFilled();
+  const cEl=document.getElementById('countFilter');
+  const chips=[
+    {lbl:'≤ '+SLOT.perGroup, min:null, max:SLOT.perGroup},
+    {lbl:'≥ '+SLOT.perGroup, min:SLOT.perGroup, max:null},
+  ];
+  if(need>0) chips.unshift({lbl:`พอดีที่ขาด (${need})`, min:need, max:null, hi:true});
+  cEl.innerHTML=`<div class="qchips">${chips.map((c,i)=>
+    `<span class="qchip ${filters.min===c.min&&filters.max===c.max?'on':''}" data-i="${i}">${c.lbl}</span>`).join('')}</div>`;
+  cEl.querySelectorAll('.qchip').forEach(ch=>ch.onclick=()=>{
+    const c=chips[+ch.dataset.i];
+    if(filters.min===c.min&&filters.max===c.max){filters.min=null;filters.max=null;}
+    else {filters.min=c.min;filters.max=c.max;}
+    document.getElementById('minCount').value=filters.min??'';
+    document.getElementById('maxCount').value=filters.max??'';
+    renderFilters();renderRows();
+  });
+}
+
+function visibleProgs(){
+  return PROGRAMS.filter(p=>{
+    if(filters.years.size && !filters.years.has(p.year))return false;
+    if(filters.schools.size && !filters.schools.has(p.school))return false;
+    if(searchTerm && !(p.name.toLowerCase().includes(searchTerm)||SCHOOLS[p.school].name.toLowerCase().includes(searchTerm)))return false;
+    const rem=remainOf(p.id);
+    if(filters.onlyRemain && rem<=0)return false;
+    if(filters.min!=null && rem<filters.min)return false;
+    if(filters.max!=null && rem>filters.max)return false;
+    return true;
+  });
+}
+
+function renderCounter(){
+  const cap=batchCapacity(), filled=batchFilled(), need=cap-filled;
+  const pct=cap?Math.min(100,filled/cap*100):0;
+  const cls=need===0?'done':need<0?'over':'';
+  const el=document.getElementById('counter');
+  // mixed-school hint
+  const schoolsIn=[...new Set(Object.keys(entry).filter(id=>entry[id]>0).map(id=>PROGRAMS.find(p=>p.id===id).school))];
+  const mixed=schoolsIn.length>1;
+  let banner='';
+  if(need<0) banner=`<div class="banner over">เกินความจุ ${Math.abs(need)} คน — ลดจำนวนลง</div>`;
+  else if(need===0) banner=`<div class="banner done">✓ ครบพอดี พร้อมกดตกลง</div>`;
+  else if(mixed) banner=`<div class="banner mixhint">ℹ กำลังผสมนักศึกษาต่างสำนักวิชาในกลุ่มเดียวกัน</div>`;
+
+  el.innerHTML=`
+    <div class="c"><div class="ck">ความจุ ${groupSpan().count} กลุ่ม</div><div class="cv">${cap}</div></div>
+    <div class="c"><div class="ck">กำหนดแล้ว</div><div class="cv">${filled}</div></div>
+    <div class="c need ${cls}"><div class="ck">ขาดอีก</div><div class="cv">${need<0?`+${-need}`:need===0?'0':need}</div></div>
+    <div class="cbar ${cls}"><i style="width:${pct}%"></i></div>
+    ${banner}`;
+}
+
+function renderRows(){
+  const tb=document.getElementById('rows'); tb.innerHTML='';
+  const progs=visibleProgs();
+  const remainingBatch=batchCapacity()-batchFilled();
+  progs.forEach(p=>{
+    const rem=remainOf(p.id);
+    const val=entry[p.id]||'';
+    const picked=entry[p.id]>0;
+    const disabled=rem<=0;
+    // max typeable = min(remaining headcount, remaining batch space + current value)
+    const maxAllow=Math.min(rem, (remainingBatch)+(+val||0));
+    const err=(+val>rem)||(+val>maxAllow && +val>0);
+    const tr=document.createElement('tr');
+    tr.className=(disabled?'disabled':'')+(picked?' picked':'');
+    tr.innerHTML=`
+      <td><input type="checkbox" class="rowchk" data-id="${p.id}" ${picked?'checked':''} ${disabled?'disabled':''}></td>
+      <td><div class="prog-nm-wrap">
+        <span class="stab" style="background:${SCHOOLS[p.school].color}"></span>
+        <div><div class="prog-nm">${p.name}</div><div class="prog-sub">${SCHOOLS[p.school].name}</div></div>
+      </div></td>
+      <td class="c"><span class="yr-badge">ชั้นปี ${p.year}</span></td>
+      <td class="avail">${rem}${(assigned[p.id]||0)?`<div class="prog-sub">จาก ${p.total}</div>`:''}</td>
+      <td class="cell-input">
+        <input type="number" class="row-num ${err?'err':''}" data-id="${p.id}" min="0" max="${rem}"
+               value="${val}" placeholder="0" ${disabled?'disabled':''}>
+        ${(+val>rem)?`<div class="row-warn">เกินจำนวนที่มี (${rem})</div>`:
+          (err?`<div class="row-warn">เกินความจุกลุ่มที่เลือก</div>`:'')}
+      </td>`;
+    tb.appendChild(tr);
+  });
+
+  // checkbox toggles
+  tb.querySelectorAll('.rowchk').forEach(c=>c.onchange=()=>{
+    const id=c.dataset.id;
+    if(c.checked){
+      const rem=remainOf(id);
+      const need=batchCapacity()-batchFilled();
+      // default to what's still needed, capped by available headcount; at least 0
+      entry[id]=Math.max(0, Math.min(rem, need));
+    }
+    else { delete entry[id]; }
+    refresh();
+  });
+  // number inputs
+  tb.querySelectorAll('.row-num').forEach(inp=>inp.oninput=()=>{
+    const id=inp.dataset.id;
+    let v=parseInt(inp.value)||0;
+    if(v<0)v=0;
+    entry[id]=v;
+    // keep counter + selection live without full re-render (avoid losing focus)
+    renderCounter(); updateSelCount(); updateFoot();
+  });
+
+  updateSelCount();
+}
+
+function updateSelCount(){
+  const picked=Object.keys(entry).filter(id=>entry[id]>0 || entry[id]===0).length;
+  document.getElementById('selCount').textContent=`เลือก ${Object.values(entry).filter(v=>v>0).length} จาก ${visibleProgs().length} รายการ`;
+}
+
+function updateFoot(){
+  const need=batchCapacity()-batchFilled();
+  const okBtn=document.getElementById('okBtn');
+  const canSave=need===0 && batchFilled()>0 && !anyOverStock();
+  okBtn.disabled=!canSave;
+  okBtn.textContent=groupSpan().count>1?`ตกลง — บันทึก ${groupSpan().count} กลุ่ม`:'ตกลง';
+  const note=document.getElementById('footNote');
+  if(anyOverStock()) note.textContent='มีรายการที่กรอกเกินจำนวนนักศึกษาที่มี';
+  else if(need>0) note.textContent=`ยังขาดอีก ${need} คนจึงจะเต็มความจุ`;
+  else if(need<0) note.textContent=`เกินความจุ ${-need} คน`;
+  else note.textContent='';
+}
+const anyOverStock=()=>Object.entries(entry).some(([id,v])=>v>remainOf(id));
+
+function updateGroupLabel(){
+  const {count}=groupSpan();
+  document.getElementById('gCountLbl').textContent=`(${count} กลุ่ม)`;
+}
+function updateSaved(){
+  const totPeople=Object.values(assigned).reduce((a,b)=>a+b,0);
+  document.getElementById('saved').innerHTML=`จัดแล้ว <b>${savedGroups}</b> / ${SLOT.groups} กลุ่ม · <b>${totPeople}</b> / ${SLOT.capacity} คน`;
+}
+
+function refresh(){ updateGroupLabel(); renderFilters(); renderCounter(); renderRows(); updateFoot(); updateSaved(); renderSummary(); }
+
+// group span inputs
+['gFrom','gTo'].forEach(idn=>{
+  document.getElementById(idn).addEventListener('input',()=>{ refresh(); });
+});
+document.getElementById('search').addEventListener('input',e=>{searchTerm=e.target.value.toLowerCase().trim();renderRows();});
+document.getElementById('onlyRemain').addEventListener('change',e=>{filters.onlyRemain=e.target.checked;renderRows();});
+document.getElementById('minCount').addEventListener('input',e=>{filters.min=e.target.value===''?null:+e.target.value;renderFilters();renderRows();});
+document.getElementById('maxCount').addEventListener('input',e=>{filters.max=e.target.value===''?null:+e.target.value;renderFilters();renderRows();});
+document.getElementById('clearFilter').onclick=()=>{
+  filters={years:new Set(),schools:new Set(),onlyRemain:false,min:null,max:null};
+  document.getElementById('onlyRemain').checked=false;
+  document.getElementById('minCount').value='';
+  document.getElementById('maxCount').value='';
+  renderFilters();renderRows();
+};
+document.getElementById('resetBtn').onclick=()=>{entry={};refresh();};
+
+document.getElementById('okBtn').onclick=()=>{
+  const {from,to,count}=groupSpan();
+  const items=Object.entries(entry).filter(([id,v])=>v>0).map(([id,v])=>({id,n:v}));
+  const people=items.reduce((s,it)=>s+it.n,0);
+  items.forEach(it=>{ assigned[it.id]=(assigned[it.id]||0)+it.n; });
+  records.push({from,to,count,items,people});
+  savedGroups=Math.min(SLOT.groups, savedGroups+count);
+  entry={};
+  const next=savedGroups+1;
+  if(next<=SLOT.groups){
+    document.getElementById('gFrom').value=next;
+    document.getElementById('gTo').value=next;
+  }
+  refresh();
+};
+
+function deleteRecord(idx){
+  const rec=records[idx];
+  rec.items.forEach(it=>{ assigned[it.id]=(assigned[it.id]||0)-it.n; if(assigned[it.id]<=0) delete assigned[it.id]; });
+  savedGroups-=rec.count;
+  records.splice(idx,1);
+  // reset group range to first free group
+  const next=savedGroups+1;
+  document.getElementById('gFrom').value=Math.min(next,SLOT.groups);
+  document.getElementById('gTo').value=Math.min(next,SLOT.groups);
+  refresh();
+}
+
+function renderSummary(){
+  const list=document.getElementById('sumList');
+  const tot=document.getElementById('sumTotal');
+  if(!records.length){
+    list.innerHTML=`<div class="sum-empty">ยังไม่มีกลุ่มที่บันทึก<br>เลือกหลักสูตรแล้วกด “ตกลง”</div>`;
+    tot.innerHTML='';
+    return;
+  }
+  // expand records into per-group cards
+  let html='';
+  records.forEach((rec,idx)=>{
+    const isBatch=rec.count>1;
+    const pills=rec.items.map(it=>{
+      const p=PROGRAMS.find(x=>x.id===it.id);
+      const c=SCHOOLS[p.school].color;
+      // batch: no per-group number; single: show number
+      return `<span class="pill"><span class="pd" style="background:${c}"></span>${p.name}${isBatch?'':` <b>${it.n}</b>`}</span>`;
+    }).join('');
+    for(let g=rec.from; g<=rec.to; g++){
+      html+=`<div class="gcard ${isBatch?'batch':'single'}">
+        ${g===rec.from?`<span class="del" title="ลบรายการนี้" data-idx="${idx}">✕</span>`:''}
+        <div class="gh">
+          <span class="gtag">กลุ่มที่ ${g}</span>
+          ${isBatch?`<span class="gpeople">รวมก้อน ${rec.people} คน</span>`:`<span class="gpeople">${rec.people} คน</span>`}
+        </div>
+        <div class="plist">${pills}</div>
+        ${isBatch?`<div class="note">เด็กลงกลุ่มไหนก็ได้ในก้อน ${rec.from}–${rec.to} · จัดกลุ่มภายหลัง</div>`:''}
+      </div>`;
+    }
+  });
+  list.innerHTML=html;
+  list.querySelectorAll('.del').forEach(d=>d.onclick=()=>deleteRecord(+d.dataset.idx));
+
+  const totPeople=Object.values(assigned).reduce((a,b)=>a+b,0);
+  tot.innerHTML=`
+    <div class="st-row"><span>กลุ่มที่จัดแล้ว</span><b>${savedGroups} / ${SLOT.groups}</b></div>
+    <div class="st-row"><span>นักศึกษาทั้งหมด</span><b>${totPeople} / ${SLOT.capacity}</b></div>`;
+}
+
+renderFilters();
+refresh();
+</script>
+</body>
+</html>
