@@ -1,0 +1,378 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>การตัดเกรดแบบอิงเกณฑ์</title>
+<style>
+  :root{
+    --primary:#6B4E9E; --primary-dark:#563E80; --primary-light:#F3EFFA;
+    --accent:#F2994A; --accent-light:#FFF3E8;
+    --ink:#2C2540; --muted:#8A82A0; --line:#E8E3F2; --bg:#F6F4FB;
+    --white:#fff; --ok:#3FB27F; --shadow:0 2px 12px rgba(107,78,158,.08);
+    --grade-A:#3FB27F;--grade-Bp:#6FBF73;--grade-B:#8DC26F;--grade-Cp:#F2C94C;
+    --grade-C:#F2994A;--grade-Dp:#EB8055;--grade-D:#E06B4A;--grade-F:#D64545;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:"Segoe UI","Sarabun",system-ui,sans-serif;background:var(--bg);color:var(--ink);font-size:14px;line-height:1.5}
+  .app{max-width:1440px;margin:0 auto;padding:20px}
+  .topbar{display:flex;align-items:center;gap:12px;margin-bottom:18px}
+  .logo{width:38px;height:38px;border-radius:10px;background:var(--primary);color:#fff;display:grid;place-items:center;font-weight:700}
+  .topbar h1{font-size:18px;font-weight:700}
+  .topbar .sub{color:var(--muted);font-size:12px}
+  .topbar .spacer{flex:1}
+
+  .grid{display:grid;grid-template-columns:260px 1fr 1.3fr;gap:16px;align-items:start}
+  .col{display:flex;flex-direction:column;gap:16px}
+  .card{background:var(--white);border:1px solid var(--line);border-radius:14px;box-shadow:var(--shadow)}
+  .card-h{display:flex;align-items:center;justify-content:space-between;padding:14px 18px;border-bottom:1px solid var(--line)}
+  .card-h h2{font-size:15px;font-weight:700}
+  .card-b{padding:16px 18px}
+
+  .btn{border:none;border-radius:9px;padding:8px 14px;font-size:13px;font-weight:600;cursor:pointer;font-family:inherit}
+  .btn-primary{background:var(--primary);color:#fff}.btn-primary:hover{background:var(--primary-dark)}
+  .btn-ghost{background:var(--primary-light);color:var(--primary)}.btn-ghost:hover{background:#E9E1F7}
+  .btn-sm{padding:6px 12px;font-size:12px}
+
+  select,input{font-family:inherit;font-size:13px;border:1px solid var(--line);border-radius:8px;padding:8px 10px;color:var(--ink);width:100%;background:#fff}
+  select:focus,input:focus{outline:2px solid var(--primary-light);border-color:var(--primary)}
+  label.fld{display:block;font-size:12px;color:var(--muted);margin-bottom:5px;font-weight:600}
+
+  .glist{display:flex;flex-direction:column;gap:8px;padding:12px}
+  .gitem{border:1px solid var(--line);border-radius:11px;padding:12px 14px;cursor:pointer;transition:.15s}
+  .gitem:hover{border-color:var(--primary);background:var(--primary-light)}
+  .gitem.on{border-color:var(--primary);background:var(--primary-light);box-shadow:inset 3px 0 0 var(--primary)}
+  .gitem .gname{font-weight:700;font-size:13px}
+  .gitem .gmeta{font-size:11px;color:var(--muted);margin-top:3px}
+  .gitem.on .gname{color:var(--primary)}
+
+  table{width:100%;border-collapse:collapse}
+  th{text-align:left;font-size:11px;text-transform:uppercase;letter-spacing:.04em;color:var(--muted);padding:8px 10px;border-bottom:2px solid var(--line)}
+  td{padding:9px 10px;border-bottom:1px solid var(--line);font-size:13px;vertical-align:middle}
+  tr:last-child td{border-bottom:none}
+  .num{text-align:right;font-variant-numeric:tabular-nums}
+
+  .badge{display:inline-flex;align-items:center;justify-content:center;min-width:34px;padding:3px 8px;border-radius:6px;font-weight:700;color:#fff;font-size:12px}
+  .g-A{background:var(--grade-A)}.g-Bp{background:var(--grade-Bp)}.g-B{background:var(--grade-B)}
+  .g-Cp{background:var(--grade-Cp)}.g-C{background:var(--grade-C)}.g-Dp{background:var(--grade-Dp)}
+  .g-D{background:var(--grade-D)}.g-F{background:var(--grade-F)}
+
+  .bar-track{height:14px;background:var(--primary-light);border-radius:7px;overflow:hidden}
+  .bar-fill{height:100%;border-radius:7px}
+
+  .chart{padding:8px 4px 0}
+  .chart-bars{display:flex;align-items:flex-end;gap:10px;height:180px;padding:0 6px;border-bottom:2px solid var(--ink)}
+  .cb{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;height:100%}
+  .cb .val{font-size:12px;font-weight:700;margin-bottom:4px}
+  .cb .col-bar{width:100%;border-radius:6px 6px 0 0;transition:height .4s ease}
+  .chart-x{display:flex;gap:10px;padding:8px 6px 0}
+  .chart-x .xl{flex:1;text-align:center;font-size:11px;color:var(--muted);font-weight:600}
+  .chart-x .xl b{display:block;color:var(--ink);font-size:12px}
+
+  .scroll{max-height:360px;overflow:auto}
+  .empty{padding:44px 20px;text-align:center;color:var(--muted)}
+  .empty .big{font-size:15px;font-weight:600;color:var(--ink);margin-bottom:4px}
+
+  .score-view{display:inline-flex;align-items:center;gap:6px;justify-content:flex-end}
+  .score-view .edit{opacity:0;border:none;background:var(--primary-light);color:var(--primary);border-radius:6px;width:24px;height:24px;cursor:pointer;font-size:12px}
+  tr:hover .score-view .edit{opacity:1}
+  .score-edit{display:inline-flex;gap:5px;align-items:center;justify-content:flex-end}
+  .score-edit input{width:72px;padding:5px 7px;text-align:right}
+  .icon-btn{border:none;border-radius:6px;width:28px;height:28px;cursor:pointer;font-weight:700}
+  .icon-ok{background:var(--ok);color:#fff}.icon-cancel{background:var(--accent-light);color:var(--accent)}
+  .adj{font-size:10px;color:var(--accent);margin-left:2px;cursor:help}
+
+  .overlay{position:fixed;inset:0;background:rgba(44,37,64,.45);display:none;place-items:center;z-index:50;padding:20px}
+  .overlay.show{display:grid}
+  .modal{background:#fff;width:100%;max-width:720px;border-radius:16px;box-shadow:0 20px 60px rgba(44,37,64,.3);max-height:90vh;display:flex;flex-direction:column}
+  .modal-h{padding:18px 22px;border-bottom:1px solid var(--line)}
+  .modal-h h2{font-size:17px}.modal-h p{color:var(--muted);font-size:12px;margin-top:2px}
+  .modal-b{padding:18px 22px;overflow:auto}
+  .modal-f{padding:14px 22px;border-top:1px solid var(--line);display:flex;justify-content:flex-end;gap:10px}
+  .crit-head,.crit-row{display:grid;grid-template-columns:70px 1fr 1fr 34px;gap:8px;align-items:center}
+  .crit-head{font-size:11px;color:var(--muted);font-weight:600;text-transform:uppercase;margin-bottom:8px;padding:0 2px}
+  .crit-row{margin-bottom:8px}
+  .rm{border:none;background:var(--accent-light);color:var(--accent);border-radius:7px;height:34px;cursor:pointer;font-weight:700}
+  .chip-wrap{display:flex;flex-wrap:wrap;gap:8px;margin-top:6px}
+  .chip{display:inline-flex;align-items:center;gap:6px;padding:6px 10px;border:1px solid var(--line);border-radius:20px;cursor:pointer;font-size:12px;user-select:none}
+  .chip input{width:auto}
+  .chip.on{background:var(--primary-light);border-color:var(--primary);color:var(--primary);font-weight:600}
+  .hint{font-size:11px;color:var(--muted);margin-top:6px}
+  @media(max-width:1100px){.grid{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<div class="app">
+  <div class="topbar">
+    <div class="logo">CES</div>
+    <div>
+      <h1>การตัดเกรดแบบอิงเกณฑ์</h1>
+      <div class="sub">Educational Services Center · Walailak University</div>
+    </div>
+    <div class="spacer"></div>
+    <button class="btn btn-ghost btn-sm" onclick="openModal()">✎ แก้ไขเกณฑ์</button>
+  </div>
+
+  <div class="grid">
+    <!-- LEFT: group picker -->
+    <div class="col">
+      <div class="card">
+        <div class="card-h"><h2>กลุ่มเรียน</h2></div>
+        <div class="glist" id="glist"></div>
+      </div>
+    </div>
+
+    <!-- CENTER: grade summary -->
+    <div class="col">
+      <div class="card">
+        <div class="card-h">
+          <h2>สรุปผลการตัดเกรด</h2>
+          <span id="sumMeta" class="hint"></span>
+        </div>
+        <div class="card-b">
+          <table>
+            <thead><tr><th>เกรด</th><th>ช่วงคะแนน</th><th class="num">จำนวน</th><th class="num">ร้อยละ</th></tr></thead>
+            <tbody id="summaryBody"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- RIGHT: chart + students -->
+    <div class="col">
+      <div class="card">
+        <div class="card-h"><h2>กราฟผลการตัดเกรด</h2></div>
+        <div class="card-b">
+          <div class="chart">
+            <div class="chart-bars" id="chartBars"></div>
+            <div class="chart-x" id="chartX"></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-h">
+          <h2>ผลเกรดรายบุคคล</h2>
+          <span id="stuCount" class="hint"></span>
+        </div>
+        <div class="card-b" style="padding:0">
+          <div class="scroll">
+            <table>
+              <thead><tr>
+                <th>รหัสนักศึกษา</th><th>ชื่อ–นามสกุล</th><th>หลักสูตร</th>
+                <th class="num">คะแนน</th><th class="num">เกรด</th>
+              </tr></thead>
+              <tbody id="studentBody"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- CRITERIA MODAL -->
+<div class="overlay" id="overlay">
+  <div class="modal">
+    <div class="modal-h">
+      <h2>กำหนดเกณฑ์การตัดเกรด</h2>
+      <p>ระบุคะแนนขั้นต่ำของแต่ละเกรด ระบบจะคำนวณช่วงคะแนนให้อัตโนมัติ</p>
+    </div>
+    <div class="modal-b">
+      <div class="crit-head"><span>เกรด</span><span>คะแนนขั้นต่ำ</span><span>ช่วงคะแนน</span><span></span></div>
+      <div id="critRows"></div>
+      <button class="btn btn-ghost btn-sm" style="margin-top:4px" onclick="addRow()">+ เพิ่มเกรด</button>
+      <div style="margin-top:20px">
+        <label class="fld">ใช้เกณฑ์นี้กับกลุ่มเรียน</label>
+        <div class="chip-wrap" id="groupChips"></div>
+        <div class="hint">เลือกได้มากกว่าหนึ่งกลุ่ม</div>
+      </div>
+    </div>
+    <div class="modal-f">
+      <button class="btn btn-ghost" onclick="closeModal()">ยกเลิก</button>
+      <button class="btn btn-primary" onclick="saveCriteria()">บันทึกและตัดเกรด</button>
+    </div>
+  </div>
+</div>
+
+<script>
+const GRADE_COLORS={A:'g-A','B+':'g-Bp',B:'g-B','C+':'g-Cp',C:'g-C','D+':'g-Dp',D:'g-D',F:'g-F'};
+const GRADE_ORDER=['A','B+','B','C+','C','D+','D','F'];
+
+let criteria=[
+  {grade:'A',min:80},{grade:'B+',min:75},{grade:'B',min:70},
+  {grade:'C+',min:65},{grade:'C',min:60},{grade:'D+',min:55},
+  {grade:'D',min:50},{grade:'F',min:0}
+];
+const GROUPS=[
+  {id:'MAG67-361-01',name:'MAG67-361 sec.01',meta:'พฤ. เช้า'},
+  {id:'MAG67-361-02',name:'MAG67-361 sec.02',meta:'พฤ. บ่าย'},
+  {id:'MAG67-215-01',name:'MAG67-215 sec.01',meta:'จ. เช้า'}
+];
+let appliedGroups=['MAG67-361-01','MAG67-361-02','MAG67-215-01'];
+let currentGroup=null;
+
+const FIRST=['ธนกร','ปาริชาต','อนุชา','กมลชนก','ศิริพร','ณัฐวุฒิ','พิมพ์ชนก','วีรภัทร','อรอุมา','ธีรเดช','สุนิสา','จิรายุ','ณิชา','ภาณุพงศ์','ชลธิชา','กฤตนัย','เมธาวี','ปรเมศวร์','ธัญชนก','พงศธร'];
+const LAST=['แซ่ลิ้ม','ทองดี','บุญมี','ศรีสุข','วัฒนา','แก้วมณี','พัฒนกุล','เกษมสุข','รัตนชัย','อินทร์แก้ว'];
+const CURRIC=['เทคโนโลยีมัลติมีเดียฯ','เกมและสื่อโต้ตอบ','แอนิเมชัน'];
+
+function seedStudents(gid){
+  let s=0;for(const c of gid)s+=c.charCodeAt(0);
+  const rnd=()=>{s=(s*9301+49297)%233280;return s/233280;};
+  const n=30+Math.floor(rnd()*10);const arr=[];
+  for(let i=0;i<n;i++){
+    const score=Math.max(28,Math.min(98,Math.round((55+rnd()*40+(rnd()<.15?-20:0))*100)/100));
+    arr.push({
+      id:'66'+String(1300+Math.floor(rnd()*400)).padStart(4,'0')+String(i).padStart(2,'0'),
+      first:FIRST[Math.floor(rnd()*FIRST.length)],last:LAST[Math.floor(rnd()*LAST.length)],
+      curric:CURRIC[Math.floor(rnd()*CURRIC.length)],score,orig:score,edited:false
+    });
+  }
+  return arr;
+}
+const STUDENTS={};GROUPS.forEach(g=>STUDENTS[g.id]=seedStudents(g.id));
+
+function sortedCrit(){return [...criteria].sort((a,b)=>b.min-a.min);}
+function rangeText(c,list,i){
+  const lo=c.min.toFixed(2);
+  const upper=i===0?100:list[i-1].min;
+  return i===0?`${lo}–100.00`:`${lo}–${(upper-0.01).toFixed(2)}`;
+}
+function gradeOf(score){const list=sortedCrit();for(const c of list){if(score>=c.min)return c.grade;}return list[list.length-1].grade;}
+
+/* LEFT group list */
+function renderGroupList(){
+  const wrap=document.getElementById('glist');wrap.innerHTML='';
+  const shown=GROUPS.filter(g=>appliedGroups.includes(g.id));
+  if(!shown.length){wrap.innerHTML='<div class="empty">ยังไม่มีกลุ่ม<br>กด "แก้ไขเกณฑ์"</div>';return;}
+  shown.forEach(g=>{
+    const on=g.id===currentGroup;
+    const div=document.createElement('div');
+    div.className='gitem'+(on?' on':'');
+    div.onclick=()=>{currentGroup=g.id;editingId=null;renderGroupList();renderResults();};
+    div.innerHTML=`<div class="gname">${g.name}</div>
+      <div class="gmeta">${g.meta} · ${STUDENTS[g.id].length} คน</div>`;
+    wrap.appendChild(div);
+  });
+}
+
+/* CENTER + RIGHT */
+function renderResults(){
+  if(!currentGroup){
+    document.getElementById('summaryBody').innerHTML='<tr><td colspan="4"><div class="empty"><div class="big">เลือกกลุ่มเรียน</div>เลือกกลุ่มจากการ์ดซ้ายเพื่อดูผล</div></td></tr>';
+    document.getElementById('studentBody').innerHTML='<tr><td colspan="5"><div class="empty">—</div></td></tr>';
+    document.getElementById('chartBars').innerHTML='';document.getElementById('chartX').innerHTML='';
+    document.getElementById('sumMeta').textContent='';document.getElementById('stuCount').textContent='';
+    return;
+  }
+  const students=STUDENTS[currentGroup];const list=sortedCrit();
+  const counts={};list.forEach(c=>counts[c.grade]=0);
+  students.forEach(s=>{s.grade=gradeOf(s.score);counts[s.grade]++;});
+  const total=students.length||1;
+
+  document.getElementById('sumMeta').textContent=`${list.length} ระดับ`;
+  document.getElementById('stuCount').textContent=`${students.length} คน`;
+
+  const sb=document.getElementById('summaryBody');sb.innerHTML='';
+  list.forEach((c,i)=>{
+    const pct=counts[c.grade]/total*100;
+    sb.innerHTML+=`<tr>
+      <td><span class="badge ${GRADE_COLORS[c.grade]}">${c.grade}</span></td>
+      <td>${rangeText(c,list,i)}</td>
+      <td class="num">${counts[c.grade]}</td>
+      <td class="num"><div style="display:flex;align-items:center;gap:8px;justify-content:flex-end">
+        <div class="bar-track" style="width:60px"><div class="bar-fill ${GRADE_COLORS[c.grade]}" style="width:${pct}%"></div></div>
+        <span style="min-width:44px">${pct.toFixed(1)}%</span></div></td></tr>`;
+  });
+
+  const bars=document.getElementById('chartBars');const xax=document.getElementById('chartX');
+  bars.innerHTML='';xax.innerHTML='';
+  const max=Math.max(...list.map(c=>counts[c.grade]),1);
+  list.forEach(c=>{
+    const h=counts[c.grade]/max*100;
+    bars.innerHTML+=`<div class="cb"><span class="val">${counts[c.grade]}</span>
+      <div class="col-bar ${GRADE_COLORS[c.grade]}" style="height:${h}%"></div></div>`;
+    xax.innerHTML+=`<div class="xl"><b>${c.grade}</b>${c.min.toFixed(0)}+</div>`;
+  });
+
+  renderStudents();
+}
+
+let editingId=null;
+function renderStudents(){
+  const students=STUDENTS[currentGroup];
+  const body=document.getElementById('studentBody');body.innerHTML='';
+  [...students].sort((a,b)=>b.score-a.score).forEach(s=>{
+    const scoreCell = editingId===s.id
+      ? `<div class="score-edit">
+           <input type="number" step="0.01" min="0" max="100" id="edit-${s.id}" value="${s.score.toFixed(2)}">
+           <button class="icon-btn icon-ok" onclick="saveScore('${s.id}')">✓</button>
+           <button class="icon-btn icon-cancel" onclick="cancelScore()">×</button>
+         </div>`
+      : `<div class="score-view">
+           <span>${s.score.toFixed(2)}${s.edited?`<span class="adj" title="คะแนนเดิม ${s.orig.toFixed(2)}">✎</span>`:''}</span>
+           <button class="edit" title="แก้ไขคะแนน" onclick="startEdit('${s.id}')">✎</button>
+         </div>`;
+    body.innerHTML+=`<tr>
+      <td>${s.id}</td><td>${s.first} ${s.last}</td><td>${s.curric}</td>
+      <td class="num">${scoreCell}</td>
+      <td class="num"><span class="badge ${GRADE_COLORS[s.grade]}">${s.grade}</span></td>
+    </tr>`;
+  });
+  const inp=document.getElementById('edit-'+editingId);
+  if(inp){inp.focus();inp.select();inp.onkeydown=e=>{if(e.key==='Enter')saveScore(editingId);if(e.key==='Escape')cancelScore();};}
+}
+function startEdit(id){editingId=id;renderStudents();}
+function cancelScore(){editingId=null;renderStudents();}
+function saveScore(id){
+  const el=document.getElementById('edit-'+id);
+  const v=parseFloat(el.value);
+  const s=STUDENTS[currentGroup].find(x=>x.id===id);
+  if(s&&!isNaN(v)){s.score=Math.max(0,Math.min(100,Math.round(v*100)/100));s.edited=(s.score!==s.orig);}
+  editingId=null;
+  renderResults(); // recompute counts, chart, and this student's grade
+}
+
+/* MODAL */
+function openModal(){renderCritRows();renderGroupChips();document.getElementById('overlay').classList.add('show');}
+function closeModal(){document.getElementById('overlay').classList.remove('show');}
+function renderCritRows(){
+  const wrap=document.getElementById('critRows');wrap.innerHTML='';const list=sortedCrit();
+  list.forEach((c,i)=>{
+    const row=document.createElement('div');row.className='crit-row';
+    row.innerHTML=`<div style="text-align:center"><span class="badge ${GRADE_COLORS[c.grade]||''}">${c.grade}</span></div>
+      <input type="number" step="0.01" value="${c.min}" data-grade="${c.grade}" oninput="updateRanges()">
+      <input type="text" value="${rangeText(c,list,i)}" readonly style="background:var(--bg);color:var(--muted)">
+      <button class="rm" onclick="removeRow('${c.grade}')">×</button>`;
+    wrap.appendChild(row);
+  });
+}
+function updateRanges(){
+  document.querySelectorAll('#critRows input[data-grade]').forEach(inp=>{
+    const c=criteria.find(x=>x.grade===inp.dataset.grade);if(c)c.min=parseFloat(inp.value)||0;});
+  renderCritRows();
+}
+function removeRow(g){if(criteria.length<=2)return;criteria=criteria.filter(c=>c.grade!==g);renderCritRows();}
+function addRow(){const used=criteria.map(c=>c.grade);const next=GRADE_ORDER.find(g=>!used.includes(g))||('X'+criteria.length);criteria.push({grade:next,min:0});renderCritRows();}
+function renderGroupChips(){
+  const wrap=document.getElementById('groupChips');wrap.innerHTML='';
+  GROUPS.forEach(g=>{
+    const on=appliedGroups.includes(g.id);
+    const chip=document.createElement('label');chip.className='chip'+(on?' on':'');
+    chip.innerHTML=`<input type="checkbox" ${on?'checked':''} value="${g.id}"
+      onchange="this.closest('.chip').classList.toggle('on',this.checked)"> ${g.name}`;
+    wrap.appendChild(chip);
+  });
+}
+function saveCriteria(){
+  updateRanges();
+  const checked=[...document.querySelectorAll('#groupChips input:checked')].map(i=>i.value);
+  appliedGroups=checked.length?checked:[GROUPS[0].id];
+  if(!appliedGroups.includes(currentGroup))currentGroup=null;
+  closeModal();renderGroupList();renderResults();
+}
+
+window.onload=()=>{renderGroupList();renderResults();openModal();};
+</script>
+</body>
+</html>
