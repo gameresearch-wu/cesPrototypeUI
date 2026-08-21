@@ -1,0 +1,251 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>แบบสอบถาม</title>
+<style>
+  :root{
+    --purple:#6b4de6; --purple-dark:#4a2fb8; --orange:#ff7a3c;
+    --bg:#f5f4fb; --card:#fff; --line:#e4e0f2; --text:#2a2540; --muted:#7d7796;
+  }
+  *{box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
+  body{
+    margin:0;font-family:'Segoe UI',Tahoma,'Sarabun',sans-serif;
+    background:var(--bg);color:var(--text);line-height:1.6;padding:20px 14px 60px;
+  }
+  .wrap{max-width:720px;margin:0 auto;}
+  .head{
+    background:linear-gradient(135deg,var(--purple),var(--purple-dark));
+    color:#fff;border-radius:18px;padding:26px 24px;margin-bottom:20px;
+    box-shadow:0 8px 24px rgba(107,77,230,.25);
+  }
+  .head h1{margin:0 0 6px;font-size:22px;}
+  .head p{margin:0;opacity:.9;font-size:14px;}
+  .badge{display:inline-block;background:rgba(255,255,255,.2);border-radius:20px;
+    padding:4px 12px;font-size:12px;margin-top:12px;}
+  .card{background:var(--card);border-radius:16px;padding:22px 20px;margin-bottom:18px;
+    box-shadow:0 2px 10px rgba(70,50,150,.06);border:1px solid var(--line);}
+  .q-num{display:inline-flex;align-items:center;justify-content:center;
+    width:28px;height:28px;background:var(--orange);color:#fff;border-radius:50%;
+    font-weight:700;font-size:15px;margin-right:8px;flex:none;}
+  .q-title{display:flex;align-items:flex-start;font-weight:700;font-size:17px;margin-bottom:6px;}
+  .q-desc{color:var(--muted);font-size:14px;margin:0 0 16px;}
+  .hint{font-size:13px;color:var(--purple-dark);background:#efeafd;border-radius:10px;
+    padding:10px 14px;margin-bottom:16px;}
+  ul.rank{list-style:none;margin:0;padding:0;}
+  li.item{
+    display:flex;align-items:flex-start;gap:12px;background:#faf9ff;
+    border:1.5px solid var(--line);border-radius:12px;padding:12px 14px;margin-bottom:12px;
+    cursor:grab;transition:box-shadow .15s,border-color .15s,transform .05s;touch-action:none;
+  }
+  li.item.dragging{opacity:.5;border-style:dashed;}
+  li.item.over{border-color:var(--purple);box-shadow:0 0 0 3px rgba(107,77,230,.15);}
+  .rank-badge{flex:none;width:34px;height:34px;border-radius:9px;
+    background:linear-gradient(135deg,var(--purple),var(--purple-dark));color:#fff;
+    display:flex;align-items:center;justify-content:center;font-weight:700;font-size:15px;}
+  li.item[data-pos="0"] .rank-badge{background:linear-gradient(135deg,#ff9a3c,var(--orange));}
+  .body{flex:1;min-width:0;}
+  .name{font-weight:600;font-size:15px;}
+  .required-tag{font-size:11px;color:var(--orange);font-weight:700;margin-left:6px;}
+  .grip{flex:none;color:var(--muted);font-size:20px;padding-top:4px;user-select:none;}
+  .reason{width:100%;margin-top:8px;border:1px solid var(--line);border-radius:8px;
+    padding:8px 10px;font-family:inherit;font-size:14px;resize:vertical;min-height:44px;display:none;}
+  li.item[data-pos="0"] .reason, li.item[data-pos="9"] .reason{display:block;}
+  .reason::placeholder{color:#b6b0cc;}
+  .movebtns{display:flex;flex-direction:column;gap:4px;flex:none;}
+  .movebtns button{border:none;background:#efeafd;color:var(--purple-dark);
+    width:30px;height:22px;border-radius:6px;font-size:13px;cursor:pointer;line-height:1;}
+  .movebtns button:disabled{opacity:.3;cursor:default;}
+  textarea.open{width:100%;border:1px solid var(--line);border-radius:10px;padding:12px;
+    font-family:inherit;font-size:15px;resize:vertical;min-height:120px;}
+  .subq{font-weight:600;font-size:14px;margin:14px 0 6px;color:var(--purple-dark);}
+  .submit{width:100%;background:linear-gradient(135deg,var(--orange),#ff5e1a);
+    color:#fff;border:none;border-radius:14px;padding:16px;font-size:17px;font-weight:700;
+    cursor:pointer;box-shadow:0 6px 18px rgba(255,94,26,.3);transition:opacity .15s;}
+  .submit:disabled{opacity:.6;cursor:default;}
+  .err{color:#d63333;font-size:13px;margin-top:8px;display:none;}
+  .done{text-align:center;padding:50px 20px;}
+  .done .check{width:70px;height:70px;background:var(--purple);border-radius:50%;
+    display:flex;align-items:center;justify-content:center;margin:0 auto 20px;
+    font-size:36px;color:#fff;}
+  .done h2{margin:0 0 8px;}
+  .done p{color:var(--muted);margin:0;}
+</style>
+</head>
+<body>
+<div class="wrap" id="app">
+
+  <div class="head">
+    <h1>แบบสอบถามความคิดเห็น</h1>
+    <p>ความคิดเห็นของคุณจะช่วยพัฒนาการทำงานของทีมและหน่วยงาน</p>
+    <span class="badge">🔒 ไม่ระบุตัวตน — ไม่มีการเก็บชื่อผู้ตอบ</span>
+  </div>
+
+  <!-- Q1 -->
+  <div class="card">
+    <div class="q-title"><span class="q-num">1</span>
+      <span>สมมุติว่าคุณเป็นผู้บริหารและมีงบประมาณสำหรับขึ้นเงินเดือนให้ทีมในจำนวนจำกัด</span>
+    </div>
+    <p class="q-desc">หากต้องเรียงลำดับสมาชิกในทีมว่า ใครควรได้รับการขึ้นเงินเดือน
+      <b>มากที่สุด → น้อยที่สุด</b> (รวมถึงตัวคุณเอง) คุณจะเรียงลำดับอย่างไร
+      โดยพิจารณาจาก ผลงาน · ความรับผิดชอบ · การช่วยเหลือทีม · คุณค่าที่สร้างให้กับหน่วยงาน</p>
+    <div class="hint">👆 ลากรายชื่อเพื่อจัดลำดับ (หรือใช้ปุ่ม ▲▼ บนมือถือ) —
+      บนสุด = ควรได้ขึ้นมากที่สุด · จำเป็นต้องกรอกเหตุผลของ <b>อันดับ 1</b> และ <b>อันดับ 10</b></div>
+    <ul class="rank" id="rankList"></ul>
+    <div class="err" id="errRank">กรุณากรอกเหตุผลของอันดับ 1 และอันดับ 10 ให้ครบ</div>
+  </div>
+
+  <!-- Q2 -->
+  <div class="card">
+    <div class="q-title"><span class="q-num">2</span>
+      <span>สิ่งที่อยากให้หน่วยงานหรือหัวหน้างานปรับปรุง</span>
+    </div>
+    <p class="q-desc">หากสามารถเปลี่ยนแปลงวิธีการทำงานของทีม/หน่วยงานได้ 1 เรื่อง
+      เพื่อให้ทุกคนทำงานได้ดีขึ้น</p>
+    <div class="subq">• คุณอยากเปลี่ยนเรื่องใด เพราะเหตุใด และเสนอให้ปรับอย่างไร</div>
+    <textarea class="open" id="q2" placeholder="เขียนความคิดเห็นของคุณที่นี่..."></textarea>
+    <div class="err" id="errQ2">กรุณาตอบคำถามข้อ 2</div>
+  </div>
+
+  <button class="submit" id="submitBtn">ส่งแบบสอบถาม</button>
+
+</div>
+
+<script>
+/* ====== ตั้งค่า: วาง URL ของ Apps Script Web App ที่นี่ ====== */
+const SHEET_URL = "PASTE_YOUR_APPS_SCRIPT_URL_HERE";
+
+const NAMES = [
+  "นางสาว คัทยวรรณ ขุนจันทร์",
+  "นายจิรภัทร ใจยะกว้าง",
+  "นายบุรณัฐ อนันตพันธ์",
+  "นายปรวีร์ ปานมาศ",
+  "นางสาวพิชญานิน กมลภิวงศ์",
+  "นายภูวดล ศรีสุธรรม",
+  "นายวิวัฒน์ รุดชาติ",
+  "นายศักดิ์สิทธิ์ สัจจโภชน์",
+  "นายอภิสิทธิ์ นุรักษ์อภิชิตกุล",
+  "นายอาราวี มะแอเคียน"
+]; // เรียงตามตัวอักษรชื่อแล้ว
+
+const list = document.getElementById('rankList');
+
+function render(){
+  [...list.children].forEach((li,i)=>{
+    li.dataset.pos = i;
+    li.querySelector('.rank-badge').textContent = i+1;
+    const tag = li.querySelector('.required-tag');
+    const rs  = li.querySelector('.reason');
+    if(i===0){ tag.textContent='(อันดับ 1 · ต้องกรอกเหตุผล)'; rs.placeholder='เหตุผลที่ควรได้ขึ้นเงินเดือนมากที่สุด...'; }
+    else if(i===9){ tag.textContent='(อันดับ 10 · ต้องกรอกเหตุผล)'; rs.placeholder='เหตุผลที่ควรได้ขึ้นเงินเดือนน้อยที่สุด...'; }
+    else { tag.textContent=''; rs.placeholder='เหตุผล (ไม่บังคับ)'; }
+    li.querySelector('.up').disabled = (i===0);
+    li.querySelector('.down').disabled = (i===list.children.length-1);
+  });
+}
+
+NAMES.forEach(name=>{
+  const li=document.createElement('li');
+  li.className='item'; li.draggable=true;
+  li.innerHTML=`
+    <span class="grip">⠿</span>
+    <div class="rank-badge"></div>
+    <div class="body">
+      <div class="name">${name}<span class="required-tag"></span></div>
+      <textarea class="reason" rows="2"></textarea>
+    </div>
+    <div class="movebtns">
+      <button class="up" title="ขึ้น">▲</button>
+      <button class="down" title="ลง">▼</button>
+    </div>`;
+  li.querySelector('.up').onclick=()=>{ if(li.previousElementSibling){ list.insertBefore(li,li.previousElementSibling); render(); } };
+  li.querySelector('.down').onclick=()=>{ if(li.nextElementSibling){ list.insertBefore(li.nextElementSibling,li); render(); } };
+  list.appendChild(li);
+});
+render();
+
+/* ===== drag & drop (desktop + touch) ===== */
+let dragEl=null;
+list.addEventListener('dragstart',e=>{ dragEl=e.target.closest('.item'); dragEl.classList.add('dragging'); });
+list.addEventListener('dragend',()=>{ if(dragEl){dragEl.classList.remove('dragging');} list.querySelectorAll('.over').forEach(x=>x.classList.remove('over')); render(); });
+list.addEventListener('dragover',e=>{
+  e.preventDefault();
+  const after=getAfter(e.clientY);
+  list.querySelectorAll('.over').forEach(x=>x.classList.remove('over'));
+  if(after){ after.classList.add('over'); list.insertBefore(dragEl,after);}
+  else list.appendChild(dragEl);
+});
+function getAfter(y){
+  const els=[...list.querySelectorAll('.item:not(.dragging)')];
+  return els.reduce((closest,child)=>{
+    const box=child.getBoundingClientRect();
+    const offset=y-box.top-box.height/2;
+    if(offset<0 && offset>closest.offset) return {offset,element:child};
+    return closest;
+  },{offset:-Infinity}).element;
+}
+/* touch drag for mobile */
+let touchEl=null,touchY=0;
+list.addEventListener('touchstart',e=>{
+  const grip=e.target.closest('.grip'); if(!grip) return;
+  touchEl=e.target.closest('.item'); touchEl.classList.add('dragging');
+},{passive:true});
+list.addEventListener('touchmove',e=>{
+  if(!touchEl) return; e.preventDefault();
+  touchY=e.touches[0].clientY;
+  const after=getAfterEl(touchEl,touchY);
+  if(after) list.insertBefore(touchEl,after); else list.appendChild(touchEl);
+},{passive:false});
+list.addEventListener('touchend',()=>{ if(touchEl){touchEl.classList.remove('dragging');touchEl=null; render();} });
+function getAfterEl(drag,y){
+  const els=[...list.querySelectorAll('.item')].filter(x=>x!==drag);
+  return els.find(child=>{ const box=child.getBoundingClientRect(); return y<box.top+box.height/2; });
+}
+
+/* ===== submit ===== */
+document.getElementById('submitBtn').addEventListener('click',async ()=>{
+  const items=[...list.children];
+  const errRank=document.getElementById('errRank');
+  const errQ2=document.getElementById('errQ2');
+  errRank.style.display='none'; errQ2.style.display='none';
+
+  const r1=items[0].querySelector('.reason').value.trim();
+  const r10=items[9].querySelector('.reason').value.trim();
+  const q2=document.getElementById('q2').value.trim();
+  let ok=true;
+  if(!r1||!r10){ errRank.style.display='block'; items[0].querySelector('.reason').scrollIntoView({behavior:'smooth',block:'center'}); ok=false; }
+  if(!q2){ errQ2.style.display='block'; ok=false; }
+  if(!ok) return;
+
+  const ranking=items.map((li,i)=>({
+    rank:i+1,
+    name:li.querySelector('.name').childNodes[0].textContent.trim(),
+    reason:li.querySelector('.reason').value.trim()
+  }));
+
+  const btn=document.getElementById('submitBtn');
+  btn.disabled=true; btn.textContent='กำลังส่ง...';
+
+  try{
+    await fetch(SHEET_URL,{
+      method:'POST',
+      mode:'no-cors',
+      headers:{'Content-Type':'text/plain;charset=utf-8'},
+      body:JSON.stringify({ranking, improvement:q2})
+    });
+    document.getElementById('app').innerHTML=`
+      <div class="done">
+        <div class="check">✓</div>
+        <h2>ส่งแบบสอบถามเรียบร้อย</h2>
+        <p>ขอบคุณสำหรับความคิดเห็นของคุณ</p>
+      </div>`;
+    window.scrollTo(0,0);
+  }catch(err){
+    btn.disabled=false; btn.textContent='ส่งแบบสอบถาม';
+    alert('เกิดข้อผิดพลาดในการส่ง กรุณาลองใหม่อีกครั้ง');
+  }
+});
+</script>
+</body>
+</html>
